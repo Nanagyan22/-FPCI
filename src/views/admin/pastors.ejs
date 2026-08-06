@@ -7,16 +7,21 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:white; border-radius:16px; padding:32px; max-width:620px; width:90%; max-height:90vh; overflow-y:auto; box-shadow:0 25px 80px rgba(0,0,0,0.3); animation:fadeInUp 0.3s ease; }
+    .modal-box h3 { font-size:18px; font-weight:800; color:var(--primary); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  </style>
 </head>
 <body>
 <div class="app-wrapper">
+  <!-- SIDEBAR -->
   <nav class="sidebar" id="sidebar">
     <a href="/dashboard" class="sidebar-brand">
       <img src="/images/logo.png" alt="FPCI" onerror="this.style.display='none'">
-      <div class="sidebar-brand-text">
-        <div class="title">FPCI</div>
-        <div class="subtitle">Flames Generation</div>
-      </div>
+      <div class="sidebar-brand-text"><div class="title">FPCI</div><div class="subtitle">Flames Generation</div></div>
     </a>
     <div class="sidebar-nav">
       <div class="nav-section-title">Main</div>
@@ -33,9 +38,9 @@
     </div>
     <div class="sidebar-footer">
       <div class="user-info">
-        <div class="user-avatar"><%= user ? user.firstName.charAt(0) + user.lastName.charAt(0) : 'A' %></div>
+        <div class="user-avatar"><%= user ? user.firstName.charAt(0)+user.lastName.charAt(0) : 'A' %></div>
         <div class="user-info-text" style="flex:1;">
-          <div class="name"><%= user ? user.firstName + ' ' + user.lastName : 'Admin' %></div>
+          <div class="name"><%= user ? user.firstName+' '+user.lastName : 'Admin' %></div>
           <div class="role"><%= user ? user.role.replace('_',' ') : 'admin' %></div>
         </div>
         <a href="/auth/logout" style="color:rgba(255,204,0,0.5);font-size:16px;"><i class="fas fa-sign-out-alt"></i></a>
@@ -48,136 +53,342 @@
       <div class="topbar-left">
         <div>
           <div class="page-title">Pastors Management</div>
-          <div class="page-subtitle">Register and manage FPCI pastors across branches</div>
+          <div class="page-subtitle">Register, edit and manage FPCI pastors across all branches</div>
         </div>
       </div>
       <div class="topbar-right">
-        <a href="/admin" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Admin Panel</a>
+        <button onclick="openAddModal()" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Add New Pastor
+        </button>
       </div>
     </header>
 
     <div class="content-wrapper">
-      <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
-        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success_msg %></div>
-      <% } %>
-      <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
-        <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error_msg %></div>
-      <% } %>
+      <% if(typeof success_msg!=='undefined'&&success_msg&&success_msg.length>0){%>
+        <div class="alert alert-success animate-in"><i class="fas fa-check-circle"></i> <%=success_msg%></div>
+      <%}%>
+      <% if(typeof error_msg!=='undefined'&&error_msg&&error_msg.length>0){%>
+        <div class="alert alert-error animate-in"><i class="fas fa-exclamation-circle"></i> <%=error_msg%></div>
+      <%}%>
 
-      <div style="display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;">
-
-        <!-- ADD PASTOR FORM -->
-        <div class="chart-card">
-          <div class="chart-title" style="margin-bottom:20px;">
-            <i class="fas fa-user-plus" style="color:var(--primary);"></i> Add New Pastor
-          </div>
-          <form action="/admin/pastors/add" method="POST">
-            <div class="form-group" style="margin-bottom:12px;">
-              <label class="form-label">Title</label>
-              <select name="title" class="form-control">
-                <option value="Pastor">Pastor</option>
-                <option value="Reverend">Reverend</option>
-                <option value="Bishop">Bishop</option>
-                <option value="Apostle">Apostle</option>
-                <option value="Prophet">Prophet</option>
-                <option value="Evangelist">Evangelist</option>
-                <option value="Deacon">Deacon</option>
-                <option value="Elder">Elder</option>
-              </select>
-            </div>
-            <div class="form-group" style="margin-bottom:12px;">
-              <label class="form-label">First Name <span class="required">*</span></label>
-              <input type="text" name="firstName" class="form-control" required placeholder="First name">
-            </div>
-            <div class="form-group" style="margin-bottom:12px;">
-              <label class="form-label">Last Name <span class="required">*</span></label>
-              <input type="text" name="lastName" class="form-control" required placeholder="Last name">
-            </div>
-            <div class="form-group" style="margin-bottom:12px;">
-              <label class="form-label">Email</label>
-              <input type="email" name="email" class="form-control" placeholder="pastor@fpci.org">
-            </div>
-            <div class="form-group" style="margin-bottom:12px;">
-              <label class="form-label">Phone</label>
-              <input type="tel" name="phone" class="form-control" placeholder="+233...">
-            </div>
-            <div class="form-group" style="margin-bottom:12px;">
-              <label class="form-label">Assign to Branches</label>
-              <select name="branches" class="form-control" multiple style="height:110px;">
-                <% branches.forEach(function(b) { %>
-                  <option value="<%= b._id %>"><%= b.name %></option>
-                <% }) %>
-              </select>
-              <small style="color:#8a6050;font-size:11px;">Hold Ctrl/Cmd to select multiple</small>
-            </div>
-            <div class="form-group" style="margin-bottom:18px;">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                <input type="checkbox" name="isPrimaryPastor" style="width:16px;height:16px;accent-color:var(--primary);">
-                <span class="form-label" style="margin:0;">Mark as Primary/Senior Pastor</span>
-              </label>
-            </div>
-            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
-              <i class="fas fa-save"></i> Add Pastor
-            </button>
-          </form>
+      <!-- STATS ROW -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+        <div class="kpi-card red" style="padding:16px;">
+          <div class="kpi-value" style="font-size:28px;"><%= pastors.length %></div>
+          <div class="kpi-label">Total Pastors</div>
         </div>
-
-        <!-- PASTORS LIST -->
-        <div>
-          <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
-            <div style="font-size:16px;font-weight:700;color:#1a0a03;">
-              <i class="fas fa-user-tie" style="color:var(--gold);"></i>
-              All Pastors (<%= pastors.length %>)
-            </div>
-            <div style="font-size:13px;color:#8a6050;">
-              <i class="fas fa-info-circle"></i> One pastor can belong to multiple branches
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;">
-            <% pastors.forEach(function(p) { %>
-            <div class="chart-card" style="border-top:3px solid var(--primary);padding:16px;">
-              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-                <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--fire-orange));color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;">
-                  <%= p.firstName.charAt(0) %><%= p.lastName.charAt(0) %>
-                </div>
-                <div>
-                  <div style="font-weight:700;font-size:14px;color:#1a0a03;"><%= p.title %> <%= p.firstName %> <%= p.lastName %></div>
-                  <% if (p.isPrimaryPastor) { %>
-                    <span style="font-size:10px;background:rgba(212,175,55,0.15);color:#D4AF37;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px;">PRIMARY PASTOR</span>
-                  <% } %>
-                </div>
-              </div>
-              <% if (p.email) { %>
-              <div style="font-size:12px;color:#8a6050;margin-bottom:3px;">
-                <i class="fas fa-envelope" style="width:14px;color:var(--primary);"></i> <%= p.email %>
-              </div>
-              <% } %>
-              <% if (p.phone) { %>
-              <div style="font-size:12px;color:#8a6050;margin-bottom:8px;">
-                <i class="fas fa-phone" style="width:14px;color:var(--primary);"></i> <%= p.phone %>
-              </div>
-              <% } %>
-              <% if (p.branches && p.branches.length > 0) { %>
-              <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f5ede8;">
-                <div style="font-size:10px;color:#8a6050;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Branches</div>
-                <div style="display:flex;flex-wrap:wrap;gap:3px;">
-                  <% p.branches.forEach(function(b) { %>
-                  <span style="background:rgba(171,42,10,0.08);color:var(--primary);padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;">
-                    <%= b.name ? b.name.replace(' Branch','') : 'Unknown' %>
-                  </span>
-                  <% }) %>
-                </div>
-              </div>
-              <% } %>
-            </div>
-            <% }) %>
-          </div>
+        <div class="kpi-card gold" style="padding:16px;">
+          <div class="kpi-value" style="font-size:28px;"><%= pastors.filter(function(p){return p.isPrimaryPastor}).length %></div>
+          <div class="kpi-label">Primary Pastors</div>
         </div>
-
+        <div class="kpi-card green" style="padding:16px;">
+          <div class="kpi-value" style="font-size:28px;"><%= pastors.filter(function(p){return p.isActive}).length %></div>
+          <div class="kpi-label">Active Pastors</div>
+        </div>
+        <div class="kpi-card blue" style="padding:16px;">
+          <div class="kpi-value" style="font-size:28px;"><%= branches.length %></div>
+          <div class="kpi-label">Branches</div>
+        </div>
       </div>
+
+      <!-- PASTORS TABLE -->
+      <div class="data-table-container animate-in">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div style="font-size:16px;font-weight:700;color:#1a0a03;">
+            <i class="fas fa-user-tie" style="color:var(--gold);margin-right:8px;"></i>
+            All Pastors (<%= pastors.length %>)
+          </div>
+          <button onclick="openAddModal()" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus"></i> Add Pastor
+          </button>
+        </div>
+
+        <% if(pastors.length===0){ %>
+        <div style="text-align:center;padding:60px;color:#8a6050;">
+          <i class="fas fa-user-tie" style="font-size:48px;opacity:0.3;display:block;margin-bottom:16px;"></i>
+          <p style="font-size:16px;">No pastors registered yet</p>
+          <button onclick="openAddModal()" class="btn btn-primary" style="margin-top:12px;">
+            <i class="fas fa-plus"></i> Add First Pastor
+          </button>
+        </div>
+        <% } else { %>
+        <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Title</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Branches</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%pastors.forEach(function(p,i){%>
+            <tr>
+              <td style="color:#8a6050;font-size:12px;"><%= i+1 %></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--fire-orange));color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;">
+                    <%= p.firstName.charAt(0) %><%= p.lastName.charAt(0) %>
+                  </div>
+                  <div>
+                    <div style="font-weight:700;color:#1a0a03;"><%= p.firstName %> <%= p.lastName %></div>
+                    <% if(p.isPrimaryPastor){%><span style="font-size:10px;background:rgba(212,175,55,0.15);color:#D4AF37;padding:1px 6px;border-radius:4px;font-weight:700;">PRIMARY</span><%}%>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span style="background:rgba(171,42,10,0.08);color:var(--primary);padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600;">
+                  <%= p.title %>
+                </span>
+              </td>
+              <td style="font-size:12px;color:#8a6050;"><%= p.email||'—' %></td>
+              <td style="font-size:12px;color:#8a6050;"><%= p.phone||'—' %></td>
+              <td>
+                <div style="display:flex;flex-wrap:wrap;gap:3px;max-width:200px;">
+                  <%if(p.branches&&p.branches.length>0){p.branches.slice(0,2).forEach(function(b){%>
+                  <span style="background:#f5ede8;color:var(--primary);padding:2px 6px;border-radius:4px;font-size:11px;white-space:nowrap;">
+                    <%= b.name?b.name.replace(' Branch',''):'?' %>
+                  </span>
+                  <%})}%>
+                  <%if(p.branches&&p.branches.length>2){%>
+                  <span style="background:#f5ede8;color:#8a6050;padding:2px 6px;border-radius:4px;font-size:11px;">+<%= p.branches.length-2 %></span>
+                  <%}%>
+                  <%if(!p.branches||p.branches.length===0){%><span style="color:#8a6050;font-size:12px;">None</span><%}%>
+                </div>
+              </td>
+              <td>
+                <span class="status-badge <%=p.isPrimaryPastor?'approved':'pending'%>" style="font-size:10px;">
+                  <%=p.isPrimaryPastor?'Primary':'Regular'%>
+                </span>
+              </td>
+              <td>
+                <span class="status-badge <%=p.isActive?'approved':'rejected'%>">
+                  <%=p.isActive?'Active':'Inactive'%>
+                </span>
+              </td>
+              <td>
+                <div style="display:flex;gap:6px;flex-wrap:nowrap;">
+                  <button class="btn btn-secondary btn-sm"
+                    onclick="openEditModal('<%=p._id%>','<%=p.firstName%>','<%=p.lastName%>','<%=p.title%>','<%=p.email||''%>','<%=p.phone||''%>',<%=p.isPrimaryPastor%>,<%=p.isActive%>,'<%=p.branches?p.branches.map(function(b){return b._id}).join(','):''%>')"
+                    title="Edit Pastor">
+                    <i class="fas fa-edit"></i> Edit
+                  </button>
+                  <form action="/admin/pastors/<%=p._id%>?_method=DELETE" method="POST" style="display:inline;"
+                    onsubmit="return confirm('Delete Pastor <%=p.title%> <%=p.firstName%> <%=p.lastName%>? This cannot be undone.')">
+                    <button class="btn btn-danger btn-sm" title="Delete Pastor">
+                      <i class="fas fa-trash"></i> Delete
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <%})%>
+          </tbody>
+        </table>
+        </div>
+        <% } %>
+      </div>
+
     </div>
   </div>
 </div>
+
+<!-- ============ ADD PASTOR MODAL ============ -->
+<div class="modal-overlay" id="addModal" onclick="closeModalOnBg(event,'addModal')">
+  <div class="modal-box">
+    <h3><i class="fas fa-user-plus"></i> Add New Pastor</h3>
+    <form action="/admin/pastors/add" method="POST">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Title <span class="required">*</span></label>
+          <select name="title" class="form-control" required>
+            <option value="Pastor">Pastor</option>
+            <option value="Reverend">Reverend</option>
+            <option value="Bishop">Bishop</option>
+            <option value="Apostle">Apostle</option>
+            <option value="Prophet">Prophet</option>
+            <option value="Evangelist">Evangelist</option>
+            <option value="Deacon">Deacon</option>
+            <option value="Elder">Elder</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select name="isActive" class="form-control">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name <span class="required">*</span></label>
+          <input type="text" name="firstName" class="form-control" required placeholder="First name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name <span class="required">*</span></label>
+          <input type="text" name="lastName" class="form-control" required placeholder="Last name">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" placeholder="pastor@fpci.org">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" name="phone" class="form-control" placeholder="+233...">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label">Assign to Branches (hold Ctrl/Cmd for multiple)</label>
+        <select name="branches" class="form-control" multiple style="height:120px;">
+          <%branches.forEach(function(b){%>
+            <option value="<%=b._id%>"><%=b.name%></option>
+          <%})%>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" name="isPrimaryPastor" style="width:18px;height:18px;accent-color:var(--primary);">
+          <span class="form-label" style="margin:0;">Mark as Primary / Senior Pastor</span>
+        </label>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" onclick="closeModal('addModal')" class="btn btn-secondary">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> Add Pastor
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ EDIT PASTOR MODAL ============ -->
+<div class="modal-overlay" id="editModal" onclick="closeModalOnBg(event,'editModal')">
+  <div class="modal-box">
+    <h3><i class="fas fa-edit"></i> Edit Pastor</h3>
+    <form id="editPastorForm" method="POST">
+      <input type="hidden" name="_method" value="PUT">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Title <span class="required">*</span></label>
+          <select name="title" id="edit_title" class="form-control" required>
+            <option value="Pastor">Pastor</option>
+            <option value="Reverend">Reverend</option>
+            <option value="Bishop">Bishop</option>
+            <option value="Apostle">Apostle</option>
+            <option value="Prophet">Prophet</option>
+            <option value="Evangelist">Evangelist</option>
+            <option value="Deacon">Deacon</option>
+            <option value="Elder">Elder</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select name="isActive" id="edit_isActive" class="form-control">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name <span class="required">*</span></label>
+          <input type="text" name="firstName" id="edit_firstName" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name <span class="required">*</span></label>
+          <input type="text" name="lastName" id="edit_lastName" class="form-control" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" id="edit_email" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" name="phone" id="edit_phone" class="form-control">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label">Assign to Branches (hold Ctrl/Cmd for multiple)</label>
+        <select name="branches" id="edit_branches" class="form-control" multiple style="height:120px;">
+          <%branches.forEach(function(b){%>
+            <option value="<%=b._id%>" id="editbranch_<%=b._id%>"><%=b.name%></option>
+          <%})%>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <input type="checkbox" name="isPrimaryPastor" id="edit_isPrimary" style="width:18px;height:18px;accent-color:var(--primary);">
+          <span class="form-label" style="margin:0;">Mark as Primary / Senior Pastor</span>
+        </label>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" onclick="closeModal('editModal')" class="btn btn-secondary">
+          <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script src="/js/main.js"></script>
+<script>
+function openAddModal() {
+  document.getElementById('addModal').classList.add('open');
+}
+
+function openEditModal(id, firstName, lastName, title, email, phone, isPrimary, isActive, branchIds) {
+  document.getElementById('edit_firstName').value = firstName;
+  document.getElementById('edit_lastName').value = lastName;
+  document.getElementById('edit_email').value = email;
+  document.getElementById('edit_phone').value = phone;
+  document.getElementById('edit_title').value = title;
+  document.getElementById('edit_isPrimary').checked = isPrimary === true || isPrimary === 'true';
+  document.getElementById('edit_isActive').value = isActive ? 'true' : 'false';
+
+  // Set form action
+  document.getElementById('editPastorForm').action = '/admin/pastors/edit/' + id;
+
+  // Select branches
+  var branchSelect = document.getElementById('edit_branches');
+  var selectedIds = branchIds ? branchIds.split(',').filter(function(b){return b;}) : [];
+  for (var i = 0; i < branchSelect.options.length; i++) {
+    branchSelect.options[i].selected = selectedIds.indexOf(branchSelect.options[i].value) > -1;
+  }
+
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function closeModalOnBg(event, id) {
+  if (event.target === document.getElementById(id)) closeModal(id);
+}
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeModal('addModal');
+    closeModal('editModal');
+  }
+});
+</script>
 </body>
 </html>

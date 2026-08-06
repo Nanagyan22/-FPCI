@@ -12,13 +12,10 @@ const path = require('path');
 
 const app = express();
 
-// Database Connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('✅ MongoDB Connected Successfully'))
-.catch(err => console.error('❌ MongoDB Connection Error:', err));
+// Database
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('✅ MongoDB Connected Successfully'))
+  .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 // View Engine
 app.set('view engine', 'ejs');
@@ -37,16 +34,17 @@ app.use(helmet({
     },
   },
 }));
+
 app.use(cors());
-app.use(morgan('dev'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session Configuration
+// Session
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'fpci_secret_key_2024',
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
@@ -56,66 +54,54 @@ app.use(session({
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 7
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   }
 }));
 
 app.use(flash());
 
-// Global Variables Middleware
+// Globals
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
   res.locals.error = req.flash('error');
   res.locals.user = req.session.user || null;
-  res.locals.appName = process.env.APP_NAME;
+  res.locals.appName = process.env.APP_NAME || 'FPCI';
   next();
 });
 
 // Routes
-const authRoutes = require('./src/routes/auth');
-const dashboardRoutes = require('./src/routes/dashboard');
-const formRoutes = require('./src/routes/forms');
-const branchRoutes = require('./src/routes/branches');
-const reportRoutes = require('./src/routes/reports');
-const adminRoutes = require('./src/routes/admin');
-const apiRoutes = require('./src/routes/api');
+app.use('/auth',      require('./src/routes/auth'));
+app.use('/dashboard', require('./src/routes/dashboard'));
+app.use('/forms',     require('./src/routes/forms'));
+app.use('/branches',  require('./src/routes/branches'));
+app.use('/reports',   require('./src/routes/reports'));
+app.use('/admin',     require('./src/routes/admin'));
+app.use('/api',       require('./src/routes/api'));
 
-app.use('/auth', authRoutes);
-app.use('/dashboard', dashboardRoutes);
-app.use('/forms', formRoutes);
-app.use('/branches', branchRoutes);
-app.use('/reports', reportRoutes);
-app.use('/admin', adminRoutes);
-app.use('/api', apiRoutes);
-
-// Home Route
 app.get('/', (req, res) => {
-  if (req.session.user) {
-    return res.redirect('/dashboard');
-  }
+  if (req.session.user) return res.redirect('/dashboard');
   res.redirect('/auth/login');
 });
 
-// 404 Handler
 app.use((req, res) => {
-  res.status(404).render('partials/404', { title: 'Page Not Found' });
+  res.status(404).render('partials/404', { title: '404 - Not Found' });
 });
 
-// Error Handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).render('partials/error', { 
+  console.error('Error:', err.message);
+  if (res.headersSent) return;
+  res.status(500).render('partials/error', {
     title: 'Server Error',
-    error: process.env.NODE_ENV === 'development' ? err : {}
+    error: process.env.NODE_ENV !== 'production' ? err : {}
   });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🔥 FPCI Server running on http://localhost:${PORT}`);
-  console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard`);
-  console.log(`📝 Forms: http://localhost:${PORT}/forms`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🔥 FPCI Server running on port ${PORT}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 module.exports = app;

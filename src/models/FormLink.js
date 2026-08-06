@@ -4,7 +4,6 @@ const { v4: uuidv4 } = require('uuid');
 const formLinkSchema = new mongoose.Schema({
   token: {
     type: String,
-    unique: true,
     default: () => uuidv4()
   },
   formType: {
@@ -33,19 +32,10 @@ const formLinkSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  maxUsage: {
-    type: Number,
-    default: 0
-  },
   description: {
     type: String,
     trim: true
   }
-}, {
-  timestamps: true
-});
-
-formLinkSchema.index({ token: 1 });
-formLinkSchema.index({ expiresAt: 1 });
+}, { timestamps: true });
 
 module.exports = mongoose.model('FormLink', formLinkSchema);

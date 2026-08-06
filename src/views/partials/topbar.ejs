@@ -1,0 +1,24 @@
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="btn btn-secondary btn-sm" id="sidebarToggle" style="display:none;">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div>
+      <div class="page-title">
+        <%= typeof pageTitle !== 'undefined' ? pageTitle : 'FPCI Dashboard' %>
+      </div>
+      <div class="page-subtitle">
+        <%= typeof pageSubtitle !== 'undefined' ? pageSubtitle : 'Flames of Power Chapel International' %>
+      </div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span style="font-size:13px;color:#8a6050;">
+      <i class="fas fa-calendar-alt" style="color:var(--primary);"></i>
+      <%= new Date().toLocaleDateString('en-GB', {weekday:'long', year:'numeric', month:'long', day:'numeric'}) %>
+    </span>
+    <a href="/forms" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus"></i> New Report
+    </a>
+  </div>
+</header>

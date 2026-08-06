@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FPCI - Submit Report</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    body { background: linear-gradient(135deg, #faf5f0 0%, #f5ede8 100%); min-height: 100vh; }
+    .public-header {
+      background: linear-gradient(135deg, #1a0a03, #2d1205);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .public-container { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+  </style>
+</head>
+<body>
+  <div class="public-header">
+    <img src="/images/logo.png" alt="FPCI" style="width:44px;height:44px;border-radius:50%;border:2px solid var(--gold);"
+      onerror="this.style.display='none'">
+    <div>
+      <div style="color:var(--fire-yellow);font-weight:800;font-size:16px;">FPCI Assessment Form</div>
+      <div style="color:rgba(255,204,0,0.5);font-size:11px;letter-spacing:2px;">FLAMES OF POWER CHAPEL INTERNATIONAL</div>
+    </div>
+    <div style="margin-left:auto;background:rgba(22,163,74,0.15);border:1px solid rgba(22,163,74,0.3);padding:6px 14px;border-radius:20px;font-size:12px;color:#4ade80;">
+      <i class="fas fa-shield-alt"></i> Secure Form
+    </div>
+  </div>
+
+  <div class="public-container">
+    <% if (formLink.branch) { %>
+    <div class="alert alert-info animate-in" style="margin-bottom:20px;">
+      <i class="fas fa-church"></i>
+      This form is pre-configured for: <strong><%= formLink.branch.name %></strong>
+    </div>
+    <% } %>
+
+    <%- include('./form-content', {
+      branches,
+      pastors,
+      activeTab,
+      isPublic: true,
+      formLink,
+      token: formLink.token
+    }) %>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script src="/js/forms.js"></script>
+</body>
+</html>

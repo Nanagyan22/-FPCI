@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar', { currentPage: 'branches', user: user }) %>
+  <div class="main-content">
+    <%- include('../partials/topbar', { pageTitle: 'Edit Branch', pageSubtitle: branch.name }) %>
+    <div class="content-wrapper">
+      <div style="max-width:800px;">
+        <div class="form-card">
+          <div class="form-body">
+            <form action="/branches/edit/<%= branch._id %>?_method=PUT" method="POST">
+              <div class="form-section-title"><i class="fas fa-church"></i> Branch Information</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Branch Name <span class="required">*</span></label>
+                  <input type="text" name="name" class="form-control" required value="<%= branch.name %>">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Branch Code <span class="required">*</span></label>
+                  <input type="text" name="code" class="form-control" required value="<%= branch.code %>" style="text-transform:uppercase;">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Location <span class="required">*</span></label>
+                  <input type="text" name="location" class="form-control" required value="<%= branch.location %>">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Region</label>
+                  <input type="text" name="region" class="form-control" value="<%= branch.region || '' %>">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Phone</label>
+                  <input type="text" name="phone" class="form-control" value="<%= branch.phone || '' %>">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" name="email" class="form-control" value="<%= branch.email || '' %>">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:8px;gap:16px;">
+                  <label class="form-check">
+                    <input type="checkbox" name="isHeadquarters" <%= branch.isHeadquarters ? 'checked' : '' %>>
+                    <span class="form-check-label">Headquarters</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Status</label>
+                  <select name="isActive" class="form-control">
+                    <option value="true" <%= branch.isActive ? 'selected' : '' %>>Active</option>
+                    <option value="false" <%= !branch.isActive ? 'selected' : '' %>>Inactive</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-section-title" style="margin-top:20px;"><i class="fas fa-user-tie"></i> Assign Pastors</div>
+              <div class="form-group">
+                <select name="pastors" class="form-control" multiple style="height:120px;">
+                  <% pastors.forEach(p => { %>
+                    <option value="<%= p._id %>"
+                      <%= branch.pastors && branch.pastors.some(bp => bp._id && bp._id.toString() === p._id.toString()) ? 'selected' : '' %>>
+                      <%= p.title %> <%= p.firstName %> <%= p.lastName %>
+                    </option>
+                  <% }) %>
+                </select>
+                <small style="color:#8a6050;font-size:12px;">Hold Ctrl/Cmd to select multiple</small>
+              </div>
+              <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px;">
+                <a href="/branches" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>

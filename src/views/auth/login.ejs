@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - FPCI Church Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    :root { --fire-orange:#FF6600; --fire-yellow:#FFCC00; --primary:#ab2a0a; --gold:#D4AF37; }
+    .fire-particle {
+      position:absolute; bottom:-20px; width:4px; height:60px;
+      background:linear-gradient(to top,transparent,var(--fire-orange),var(--fire-yellow));
+      border-radius:50%; animation:rise 4s ease-in infinite; opacity:0.15;
+    }
+    @keyframes rise {
+      0%{bottom:-20px;opacity:0.2;transform:scaleX(1);}
+      50%{opacity:0.08;transform:scaleX(1.5);}
+      100%{bottom:100%;opacity:0;transform:scaleX(0.5);}
+    }
+  </style>
+</head>
+<body>
+<div class="login-page">
+  <div style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+    <div class="fire-particle" style="left:5%;animation-delay:0s;"></div>
+    <div class="fire-particle" style="left:20%;animation-delay:0.7s;"></div>
+    <div class="fire-particle" style="left:40%;animation-delay:1.4s;"></div>
+    <div class="fire-particle" style="left:65%;animation-delay:0.3s;"></div>
+    <div class="fire-particle" style="left:80%;animation-delay:1.8s;"></div>
+    <div class="fire-particle" style="left:95%;animation-delay:1s;"></div>
+  </div>
+
+  <div class="login-card animate-in">
+    <div class="login-logo">
+      <img src="/images/logo.png" alt="FPCI Logo"
+        onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex'">
+      <div id="logo-fb" style="display:none;width:90px;height:90px;background:linear-gradient(135deg,#ab2a0a,#FF6600);border-radius:50%;align-items:center;justify-content:center;border:3px solid #D4AF37;margin:0 auto 16px;font-size:36px;">
+        🔥
+      </div>
+      <h1>FPCI</h1>
+      <p>Flames of Power Chapel International</p>
+      <div style="margin-top:6px;font-size:10px;color:rgba(255,204,0,0.35);letter-spacing:3px;">MANAGEMENT PORTAL</div>
+    </div>
+
+    <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
+      <div class="alert alert-success" style="background:rgba(22,163,74,0.15);border-left:4px solid #16a34a;color:#4ade80;margin-bottom:16px;">
+        <i class="fas fa-check-circle"></i> <%= success_msg %>
+      </div>
+    <% } %>
+    <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
+      <div class="alert alert-error" style="background:rgba(220,38,38,0.15);border-left:4px solid #dc2626;color:#fca5a5;margin-bottom:16px;">
+        <i class="fas fa-exclamation-circle"></i> <%= error_msg %>
+      </div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+      <div class="alert alert-error" style="background:rgba(220,38,38,0.15);border-left:4px solid #dc2626;color:#fca5a5;margin-bottom:16px;">
+        <i class="fas fa-exclamation-circle"></i> <%= error %>
+      </div>
+    <% } %>
+
+    <form action="/auth/login" method="POST" class="login-form" id="loginForm">
+      <div class="form-group">
+        <label class="form-label">
+          <i class="fas fa-envelope" style="color:var(--fire-orange);margin-right:6px;"></i>Email Address
+        </label>
+        <input type="email" name="email" class="form-control"
+          placeholder="admin@fpci.org" required autocomplete="email"
+          style="background:rgba(255,255,255,0.06);border-color:rgba(212,175,55,0.25);color:white;">
+      </div>
+
+      <div class="form-group" style="margin-top:16px;">
+        <label class="form-label">
+          <i class="fas fa-lock" style="color:var(--fire-orange);margin-right:6px;"></i>Password
+        </label>
+        <div style="position:relative;">
+          <input type="password" name="password" id="passwordInput" class="form-control"
+            placeholder="Enter your password" required autocomplete="current-password"
+            style="background:rgba(255,255,255,0.06);border-color:rgba(212,175,55,0.25);color:white;padding-right:48px;">
+          <button type="button" id="togglePwdBtn"
+            style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:16px;line-height:1;padding:0;z-index:10;">
+            <i class="fas fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="login-btn" id="loginBtn" style="margin-top:24px;">
+        <i class="fas fa-fire" style="margin-right:8px;"></i> Sign In to FPCI
+      </button>
+    </form>
+
+    <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(212,175,55,0.1);text-align:center;">
+      <p style="color:rgba(255,255,255,0.25);font-size:12px;margin-bottom:6px;">Submitting a branch report?</p>
+      <p style="color:rgba(255,204,0,0.4);font-size:11px;">Use the form link sent to you by your administrator</p>
+    </div>
+
+    <div style="margin-top:18px;text-align:center;">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.1);border-radius:8px;padding:8px 16px;">
+        <span style="font-size:14px;">🔥</span>
+        <span style="color:rgba(255,204,0,0.3);font-size:10px;letter-spacing:1px;">SECURE CHURCH MANAGEMENT PORTAL</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Password toggle - works reliably
+  document.getElementById('togglePwdBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var input = document.getElementById('passwordInput');
+    var icon = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'fas fa-eye-slash';
+      this.style.color = 'rgba(255,204,0,0.6)';
+    } else {
+      input.type = 'password';
+      icon.className = 'fas fa-eye';
+      this.style.color = 'rgba(255,255,255,0.4)';
+    }
+  });
+
+  // Login button loading state
+  document.getElementById('loginForm').addEventListener('submit', function() {
+    var btn = document.getElementById('loginBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+    btn.disabled = true;
+  });
+</script>
+</body>
+</html>

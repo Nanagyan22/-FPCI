@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'FPCI Church Management' %></title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <%- typeof extraCSS !== 'undefined' ? extraCSS : '' %>
+</head>
+<body>
+  <div class="app-wrapper">
+    <%- include('sidebar') %>
+    <div class="main-content">
+      <%- include('topbar') %>
+      <div class="content-wrapper">
+        <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
+          <div class="alert alert-success animate-in">
+            <i class="fas fa-check-circle"></i> <%= success_msg %>
+          </div>
+        <% } %>
+        <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
+          <div class="alert alert-error animate-in">
+            <i class="fas fa-exclamation-circle"></i> <%= error_msg %>
+          </div>
+        <% } %>
+        <%- body %>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="/js/main.js"></script>
+  <%- typeof extraJS !== 'undefined' ? extraJS : '' %>
+</body>
+</html>

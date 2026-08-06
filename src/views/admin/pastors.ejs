@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pastors Management - FPCI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="app-wrapper">
+  <nav class="sidebar" id="sidebar">
+    <a href="/dashboard" class="sidebar-brand">
+      <img src="/images/logo.png" alt="FPCI" onerror="this.style.display='none'">
+      <div class="sidebar-brand-text">
+        <div class="title">FPCI</div>
+        <div class="subtitle">Flames Generation</div>
+      </div>
+    </a>
+    <div class="sidebar-nav">
+      <div class="nav-section-title">Main</div>
+      <div class="nav-item"><a href="/dashboard" class="nav-link"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></div>
+      <div class="nav-item"><a href="/forms" class="nav-link"><i class="fas fa-file-alt"></i><span>Submit Report</span></a></div>
+      <div class="nav-item"><a href="/reports" class="nav-link"><i class="fas fa-table"></i><span>Raw Data</span></a></div>
+      <div class="nav-section-title">Management</div>
+      <div class="nav-item"><a href="/branches" class="nav-link"><i class="fas fa-church"></i><span>Branches</span></a></div>
+      <div class="nav-item"><a href="/admin/pastors" class="nav-link active"><i class="fas fa-user-tie"></i><span>Pastors</span></a></div>
+      <div class="nav-section-title">Admin</div>
+      <div class="nav-item"><a href="/admin/links" class="nav-link"><i class="fas fa-link"></i><span>Form Links</span></a></div>
+      <div class="nav-item"><a href="/admin/users" class="nav-link"><i class="fas fa-users-cog"></i><span>Users</span></a></div>
+      <div class="nav-item"><a href="/admin" class="nav-link"><i class="fas fa-cog"></i><span>Admin Panel</span></a></div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar"><%= user ? user.firstName.charAt(0) + user.lastName.charAt(0) : 'A' %></div>
+        <div class="user-info-text" style="flex:1;">
+          <div class="name"><%= user ? user.firstName + ' ' + user.lastName : 'Admin' %></div>
+          <div class="role"><%= user ? user.role.replace('_',' ') : 'admin' %></div>
+        </div>
+        <a href="/auth/logout" style="color:rgba(255,204,0,0.5);font-size:16px;"><i class="fas fa-sign-out-alt"></i></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div>
+          <div class="page-title">Pastors Management</div>
+          <div class="page-subtitle">Register and manage FPCI pastors across branches</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <a href="/admin" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Admin Panel</a>
+      </div>
+    </header>
+
+    <div class="content-wrapper">
+      <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success_msg %></div>
+      <% } %>
+      <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error_msg %></div>
+      <% } %>
+
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;">
+
+        <!-- ADD PASTOR FORM -->
+        <div class="chart-card">
+          <div class="chart-title" style="margin-bottom:20px;">
+            <i class="fas fa-user-plus" style="color:var(--primary);"></i> Add New Pastor
+          </div>
+          <form action="/admin/pastors/add" method="POST">
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Title</label>
+              <select name="title" class="form-control">
+                <option value="Pastor">Pastor</option>
+                <option value="Reverend">Reverend</option>
+                <option value="Bishop">Bishop</option>
+                <option value="Apostle">Apostle</option>
+                <option value="Prophet">Prophet</option>
+                <option value="Evangelist">Evangelist</option>
+                <option value="Deacon">Deacon</option>
+                <option value="Elder">Elder</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">First Name <span class="required">*</span></label>
+              <input type="text" name="firstName" class="form-control" required placeholder="First name">
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Last Name <span class="required">*</span></label>
+              <input type="text" name="lastName" class="form-control" required placeholder="Last name">
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" placeholder="pastor@fpci.org">
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Phone</label>
+              <input type="tel" name="phone" class="form-control" placeholder="+233...">
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label class="form-label">Assign to Branches</label>
+              <select name="branches" class="form-control" multiple style="height:110px;">
+                <% branches.forEach(function(b) { %>
+                  <option value="<%= b._id %>"><%= b.name %></option>
+                <% }) %>
+              </select>
+              <small style="color:#8a6050;font-size:11px;">Hold Ctrl/Cmd to select multiple</small>
+            </div>
+            <div class="form-group" style="margin-bottom:18px;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" name="isPrimaryPastor" style="width:16px;height:16px;accent-color:var(--primary);">
+                <span class="form-label" style="margin:0;">Mark as Primary/Senior Pastor</span>
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+              <i class="fas fa-save"></i> Add Pastor
+            </button>
+          </form>
+        </div>
+
+        <!-- PASTORS LIST -->
+        <div>
+          <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:16px;font-weight:700;color:#1a0a03;">
+              <i class="fas fa-user-tie" style="color:var(--gold);"></i>
+              All Pastors (<%= pastors.length %>)
+            </div>
+            <div style="font-size:13px;color:#8a6050;">
+              <i class="fas fa-info-circle"></i> One pastor can belong to multiple branches
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;">
+            <% pastors.forEach(function(p) { %>
+            <div class="chart-card" style="border-top:3px solid var(--primary);padding:16px;">
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--fire-orange));color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;">
+                  <%= p.firstName.charAt(0) %><%= p.lastName.charAt(0) %>
+                </div>
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:#1a0a03;"><%= p.title %> <%= p.firstName %> <%= p.lastName %></div>
+                  <% if (p.isPrimaryPastor) { %>
+                    <span style="font-size:10px;background:rgba(212,175,55,0.15);color:#D4AF37;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:0.5px;">PRIMARY PASTOR</span>
+                  <% } %>
+                </div>
+              </div>
+              <% if (p.email) { %>
+              <div style="font-size:12px;color:#8a6050;margin-bottom:3px;">
+                <i class="fas fa-envelope" style="width:14px;color:var(--primary);"></i> <%= p.email %>
+              </div>
+              <% } %>
+              <% if (p.phone) { %>
+              <div style="font-size:12px;color:#8a6050;margin-bottom:8px;">
+                <i class="fas fa-phone" style="width:14px;color:var(--primary);"></i> <%= p.phone %>
+              </div>
+              <% } %>
+              <% if (p.branches && p.branches.length > 0) { %>
+              <div style="margin-top:8px;padding-top:8px;border-top:1px solid #f5ede8;">
+                <div style="font-size:10px;color:#8a6050;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Branches</div>
+                <div style="display:flex;flex-wrap:wrap;gap:3px;">
+                  <% p.branches.forEach(function(b) { %>
+                  <span style="background:rgba(171,42,10,0.08);color:var(--primary);padding:2px 7px;border-radius:5px;font-size:11px;font-weight:600;">
+                    <%= b.name ? b.name.replace(' Branch','') : 'Unknown' %>
+                  </span>
+                  <% }) %>
+                </div>
+              </div>
+              <% } %>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>

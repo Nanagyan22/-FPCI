@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Links - FPCI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="app-wrapper">
+  <nav class="sidebar" id="sidebar">
+    <a href="/dashboard" class="sidebar-brand">
+      <img src="/images/logo.png" alt="FPCI" onerror="this.style.display='none'">
+      <div class="sidebar-brand-text">
+        <div class="title">FPCI</div>
+        <div class="subtitle">Flames Generation</div>
+      </div>
+    </a>
+    <div class="sidebar-nav">
+      <div class="nav-section-title">Main</div>
+      <div class="nav-item"><a href="/dashboard" class="nav-link"><i class="fas fa-chart-line"></i><span>Dashboard</span></a></div>
+      <div class="nav-item"><a href="/forms" class="nav-link"><i class="fas fa-file-alt"></i><span>Submit Report</span></a></div>
+      <div class="nav-item"><a href="/reports" class="nav-link"><i class="fas fa-table"></i><span>Raw Data</span></a></div>
+      <div class="nav-section-title">Management</div>
+      <div class="nav-item"><a href="/branches" class="nav-link"><i class="fas fa-church"></i><span>Branches</span></a></div>
+      <div class="nav-item"><a href="/admin/pastors" class="nav-link"><i class="fas fa-user-tie"></i><span>Pastors</span></a></div>
+      <div class="nav-section-title">Admin</div>
+      <div class="nav-item"><a href="/admin/links" class="nav-link active"><i class="fas fa-link"></i><span>Form Links</span></a></div>
+      <div class="nav-item"><a href="/admin/users" class="nav-link"><i class="fas fa-users-cog"></i><span>Users</span></a></div>
+      <div class="nav-item"><a href="/admin" class="nav-link"><i class="fas fa-cog"></i><span>Admin Panel</span></a></div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar"><%= user ? user.firstName.charAt(0) + user.lastName.charAt(0) : 'A' %></div>
+        <div class="user-info-text" style="flex:1;">
+          <div class="name"><%= user ? user.firstName + ' ' + user.lastName : 'Admin' %></div>
+          <div class="role"><%= user ? user.role.replace('_',' ') : 'admin' %></div>
+        </div>
+        <a href="/auth/logout" style="color:rgba(255,204,0,0.5);font-size:16px;"><i class="fas fa-sign-out-alt"></i></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div>
+          <div class="page-title">Form Links</div>
+          <div class="page-subtitle">Generate & share form links with pastors</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <a href="/admin" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Admin Panel</a>
+      </div>
+    </header>
+
+    <div class="content-wrapper">
+      <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success" id="successAlert"><i class="fas fa-check-circle"></i> <%- success_msg %></div>
+      <% } %>
+      <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error_msg %></div>
+      <% } %>
+
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;">
+
+        <!-- GENERATE LINK FORM -->
+        <div class="chart-card">
+          <div class="chart-title" style="margin-bottom:20px;">
+            <i class="fas fa-plus-circle" style="color:var(--primary);"></i> Generate New Link
+          </div>
+          <form action="/forms/generate-link" method="POST">
+            <div class="form-group" style="margin-bottom:14px;">
+              <label class="form-label">Form Type</label>
+              <select name="formType" class="form-control">
+                <option value="both">Both Weekly & Monthly</option>
+                <option value="weekly">Weekly Only</option>
+                <option value="monthly">Monthly Only</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label class="form-label">Restrict to Branch</label>
+              <select name="branch" class="form-control">
+                <option value="">All Branches (Open)</option>
+                <% branches.forEach(function(b) { %>
+                  <option value="<%= b._id %>"><%= b.name %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label class="form-label">Link Expires In (Days)</label>
+              <input type="number" name="expiresInDays" class="form-control" value="30" min="1" max="365">
+            </div>
+            <div class="form-group" style="margin-bottom:18px;">
+              <label class="form-label">Description / Note</label>
+              <input type="text" name="description" class="form-control" placeholder="e.g. Sent to Accra Pastor">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+              <i class="fas fa-link"></i> Generate Link
+            </button>
+          </form>
+
+          <div style="margin-top:20px;padding:14px;background:rgba(171,42,10,0.05);border-radius:8px;border:1px dashed rgba(171,42,10,0.2);">
+            <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px;"><i class="fas fa-info-circle"></i> How it works</div>
+            <div style="font-size:12px;color:#8a6050;line-height:1.6;">
+              1. Generate a unique link<br>
+              2. Copy and send to the Pastor via WhatsApp/Email<br>
+              3. Pastor clicks link and fills the form<br>
+              4. Data appears instantly in dashboard
+            </div>
+          </div>
+        </div>
+
+        <!-- LINKS TABLE -->
+        <div class="data-table-container">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:16px;font-weight:700;color:#1a0a03;">
+              <i class="fas fa-list" style="color:var(--gold);"></i>
+              All Form Links (<%= formLinks.length %>)
+            </div>
+          </div>
+
+          <% if (formLinks.length === 0) { %>
+          <div style="text-align:center;padding:60px;color:#8a6050;">
+            <i class="fas fa-link" style="font-size:48px;opacity:0.3;display:block;margin-bottom:16px;"></i>
+            <p style="font-size:16px;">No links generated yet</p>
+            <p style="font-size:13px;">Use the form on the left to generate your first link</p>
+          </div>
+          <% } else { %>
+          <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Form Type</th>
+                <th>Branch</th>
+                <th>Share Link</th>
+                <th>Description</th>
+                <th>Expires</th>
+                <th>Times Used</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% formLinks.forEach(function(link) {
+                var isActive = link.isActive && new Date(link.expiresAt) > new Date();
+                var fullLink = appUrl + '/forms/submit/' + link.token;
+              %>
+              <tr>
+                <td>
+                  <span style="font-weight:700;text-transform:capitalize;background:rgba(171,42,10,0.08);color:var(--primary);padding:3px 8px;border-radius:6px;font-size:12px;">
+                    <%= link.formType %>
+                  </span>
+                </td>
+                <td style="font-size:13px;"><%= link.branch ? link.branch.name : 'All Branches' %></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <code style="font-size:11px;background:#f5ede8;padding:3px 7px;border-radius:4px;color:var(--primary);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;">
+                      .../<%= link.token.substr(0,10) %>
+                    </code>
+                    <button class="btn btn-secondary btn-sm" onclick="copyAndShow('<%= fullLink %>')" title="Copy link" style="padding:4px 8px;">
+                      <i class="fas fa-copy"></i>
+                    </button>
+                    <% if (isActive) { %>
+                    <a href="<%= fullLink %>" target="_blank" class="btn btn-secondary btn-sm" title="Open link" style="padding:4px 8px;">
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    <% } %>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:#8a6050;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                  <%= link.description || '&mdash;' %>
+                </td>
+                <td style="font-size:12px;"><%= new Date(link.expiresAt).toLocaleDateString('en-GB') %></td>
+                <td style="text-align:center;">
+                  <span style="font-weight:700;font-size:16px;color:<%= link.usageCount > 0 ? '#16a34a' : '#8a6050' %>;">
+                    <%= link.usageCount %>
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge <%= isActive ? 'approved' : 'rejected' %>">
+                    <%= isActive ? 'Active' : 'Expired' %>
+                  </span>
+                </td>
+                <td style="font-size:11px;color:#8a6050;"><%= new Date(link.createdAt).toLocaleDateString('en-GB') %></td>
+                <td>
+                  <% if (isActive) { %>
+                  <form action="/admin/links/<%= link._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Deactivate this link?')">
+                    <button class="btn btn-danger btn-sm" title="Deactivate"><i class="fas fa-ban"></i></button>
+                  </form>
+                  <% } else { %>
+                  <span style="color:#8a6050;font-size:12px;">Expired</span>
+                  <% } %>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- COPY MODAL -->
+      <div id="copyModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:16px;padding:32px;max-width:560px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+          <h3 style="color:var(--primary);margin-bottom:8px;"><i class="fas fa-check-circle" style="color:#16a34a;"></i> Link Copied!</h3>
+          <p style="color:#8a6050;font-size:13px;margin-bottom:16px;">Share this link with the Pastor via WhatsApp or Email:</p>
+          <div style="background:#f5ede8;border-radius:8px;padding:12px;word-break:break-all;font-family:monospace;font-size:12px;color:var(--primary);margin-bottom:16px;border:1px solid rgba(171,42,10,0.2);" id="modalLinkText"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button onclick="shareWhatsApp()" class="btn btn-success"><i class="fab fa-whatsapp"></i> Share via WhatsApp</button>
+            <button onclick="copyAgain()" class="btn btn-secondary"><i class="fas fa-copy"></i> Copy Again</button>
+            <button onclick="closeModal()" class="btn btn-secondary"><i class="fas fa-times"></i> Close</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+var currentLink = '';
+
+function copyAndShow(link) {
+  currentLink = link;
+  document.getElementById('modalLinkText').textContent = link;
+  document.getElementById('copyModal').style.display = 'flex';
+  navigator.clipboard.writeText(link).catch(function() {
+    // Fallback
+    var el = document.createElement('textarea');
+    el.value = link;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  });
+}
+
+function closeModal() {
+  document.getElementById('copyModal').style.display = 'none';
+}
+
+function copyAgain() {
+  navigator.clipboard.writeText(currentLink).then(function() {
+    alert('Copied again!');
+  });
+}
+
+function shareWhatsApp() {
+  var msg = 'Please fill out the FPCI Assessment Form using this link:\n\n' + currentLink;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+document.getElementById('copyModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>

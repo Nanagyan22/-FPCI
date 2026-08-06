@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar', { currentPage: 'reports', user: user }) %>
+  <div class="main-content">
+    <%- include('../partials/topbar', { pageTitle: 'Report Detail', pageSubtitle: report.reportId }) %>
+    <div class="content-wrapper">
+
+      <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center;flex-wrap:wrap;">
+        <a href="/reports?type=<%= type %>" class="btn btn-secondary btn-sm">
+          <i class="fas fa-arrow-left"></i> Back to Reports
+        </a>
+        <span class="status-badge <%= report.status %>" style="font-size:13px;padding:6px 14px;">
+          <i class="fas fa-circle" style="font-size:8px;"></i> <%= report.status.toUpperCase() %>
+        </span>
+        <% if (user && ['super_admin','admin'].includes(user.role)) { %>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <form action="/reports/<%= type %>/<%= report._id %>/status?_method=PUT" method="POST" style="display:inline;">
+            <input type="hidden" name="status" value="approved">
+            <button class="btn btn-success btn-sm"><i class="fas fa-check"></i> Approve</button>
+          </form>
+          <form action="/reports/<%= type %>/<%= report._id %>/status?_method=PUT" method="POST" style="display:inline;">
+            <input type="hidden" name="status" value="rejected">
+            <button class="btn btn-danger btn-sm"><i class="fas fa-times"></i> Reject</button>
+          </form>
+        </div>
+        <% } %>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+        <!-- LEFT: Report Details -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:16px;">
+              <i class="fas fa-info-circle" style="color:var(--primary);"></i> Report Information
+            </div>
+            <table style="width:100%;font-size:13px;">
+              <tr><td style="color:#8a6050;padding:6px 0;width:40%;">Report ID</td><td><strong class="font-mono"><%= report.reportId %></strong></td></tr>
+              <tr><td style="color:#8a6050;padding:6px 0;">Branch</td><td><strong><%= report.branchName %></strong></td></tr>
+              <% if (type === 'monthly') { %>
+              <tr><td style="color:#8a6050;padding:6px 0;">Period</td><td><strong><%= report.monthName %> <%= report.year %></strong></td></tr>
+              <% } else { %>
+              <tr><td style="color:#8a6050;padding:6px 0;">Week Date</td><td><strong><%= moment(report.weeklyDate).format('DD MMMM YYYY') %></strong></td></tr>
+              <tr><td style="color:#8a6050;padding:6px 0;">Days of Service</td><td><%= report.daysOfService.join(', ') %></td></tr>
+              <% } %>
+              <tr><td style="color:#8a6050;padding:6px 0;">Prepared By</td><td><%= report.preparedBy %></td></tr>
+              <tr><td style="color:#8a6050;padding:6px 0;">Resident Pastor</td><td><%= report.residentPastor %></td></tr>
+              <tr><td style="color:#8a6050;padding:6px 0;">Submitted</td><td><%= moment(report.createdAt).format('DD MMM YYYY, HH:mm') %></td></tr>
+              <tr><td style="color:#8a6050;padding:6px 0;">Via Link</td><td><%= report.submittedViaLink ? 'Yes' : 'No (Internal)' %></td></tr>
+            </table>
+          </div>
+
+          <!-- Signatures -->
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:16px;">
+              <i class="fas fa-signature" style="color:var(--gold);"></i> Signatures
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div>
+                <div style="font-size:12px;color:#8a6050;margin-bottom:8px;">Prepared By</div>
+                <% if (report.preparedBySignature) { %>
+                  <img src="<%= report.preparedBySignature %>" alt="Signature" style="max-width:100%;border:1px solid #f0e8e0;border-radius:6px;background:white;">
+                <% } else { %>
+                  <div style="height:60px;background:#f9f5f2;border:1px dashed #e8d5c4;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#c4a98a;">No signature</div>
+                <% } %>
+              </div>
+              <div>
+                <div style="font-size:12px;color:#8a6050;margin-bottom:8px;">Resident Pastor</div>
+                <% if (report.residentPastorSignature) { %>
+                  <img src="<%= report.residentPastorSignature %>" alt="Signature" style="max-width:100%;border:1px solid #f0e8e0;border-radius:6px;background:white;">
+                <% } else { %>
+                  <div style="height:60px;background:#f9f5f2;border:1px dashed #e8d5c4;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#c4a98a;">No signature</div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Financial Data -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <% if (type === 'monthly') { %>
+          <!-- Attendance -->
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:16px;">
+              <i class="fas fa-users" style="color:#0284c7;"></i> Membership & Attendance
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+              <% [['Male',report.membership.male,'#0284c7'],['Female',report.membership.female,'#e11d48'],['Children',report.membership.children,'#16a34a'],['Visitors',report.membership.visitors,'#d97706'],['Souls Added',report.membership.soulsAdded,'#7c3aed']].forEach(([l,v,c]) => { %>
+              <div style="background:rgba(0,0,0,0.03);border-radius:8px;padding:12px;text-align:center;border-left:3px solid <%= c %>;">
+                <div style="font-size:22px;font-weight:800;color:<%= c %>;"><%= v %></div>
+                <div style="font-size:11px;color:#8a6050;"><%= l %></div>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+
+          <!-- Income -->
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:16px;">
+              <i class="fas fa-coins" style="color:#16a34a;"></i> Income Breakdown
+            </div>
+            <% const incItems = [['Tithes',report.income.tithes],['Offerings',report.income.offerings],['Membership Dues',report.income.membershipDues],['Project Offering',report.income.projectOffering],['Children Service',report.income.childrenService],['Seeds',report.income.seeds],['Pledges',report.income.pledges],['Revival/Programs',report.income.revivalPrograms],['Bank',report.income.bank],['Other Funds',report.income.otherFunds]]; %>
+            <% incItems.filter(i => i[1] > 0).forEach(([label,val]) => { %>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5ede8;font-size:13px;">
+              <span style="color:#4a2a10;"><%= label %></span>
+              <span style="font-weight:600;">GH¢<%= val.toLocaleString() %></span>
+            </div>
+            <% }) %>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:15px;font-weight:800;color:#16a34a;border-top:2px solid #16a34a;margin-top:4px;">
+              <span>TOTAL INCOME</span>
+              <span>GH¢<%= report.income.total.toLocaleString() %></span>
+            </div>
+          </div>
+
+          <!-- Expenditure & Net -->
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:16px;">
+              <i class="fas fa-receipt" style="color:#dc2626;"></i> Expenditure
+            </div>
+            <% [['Light: Church Premises',report.expenditure.lightChurchPremises],['Pastors Allowance',report.expenditure.pastorsAllowance],['Other Expenses',report.expenditure.otherExpenses]].forEach(([label,val]) => { %>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5ede8;font-size:13px;">
+              <span style="color:#4a2a10;"><%= label %></span>
+              <span style="font-weight:600;color:#dc2626;">GH¢<%= val.toLocaleString() %></span>
+            </div>
+            <% }) %>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:15px;font-weight:800;color:#dc2626;border-top:2px solid #dc2626;margin-top:4px;">
+              <span>TOTAL EXPENDITURE</span>
+              <span>GH¢<%= report.expenditure.total.toLocaleString() %></span>
+            </div>
+            <div style="background:linear-gradient(135deg,#1a0a03,#2d1205);border-radius:10px;padding:14px 20px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+              <span style="color:rgba(255,204,0,0.7);font-size:13px;font-weight:700;">Income Over Expenditure</span>
+              <span style="font-size:22px;font-weight:900;" class="<%= report.incomeOverExpenditure >= 0 ? 'surplus-positive' : 'surplus-negative' %>">
+                GH¢<%= report.incomeOverExpenditure.toLocaleString() %>
+              </span>
+            </div>
+          </div>
+          <% } else { %>
+          <!-- Weekly Finance -->
+          <div class="chart-card">
+            <div class="chart-title" style="margin-bottom:16px;">
+              <i class="fas fa-coins" style="color:#16a34a;"></i> Financial Records
+            </div>
+            <% [['Tithes',report.finance.tithes],['Offerings',report.finance.offerings],['Membership Dues',report.finance.membershipDues],['Project Offering',report.finance.projectOffering],['Children Service',report.finance.childrenService],['Seeds',report.finance.seeds],['Pledges',report.finance.pledges],['Revival/Programs',report.finance.revivalPrograms],['Bank',report.finance.bank],['Other Funds',report.finance.otherFunds]].filter(i=>i[1]>0).forEach(([l,v]) => { %>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5ede8;font-size:13px;">
+              <span style="color:#4a2a10;"><%= l %></span>
+              <span style="font-weight:600;">GH¢<%= v.toLocaleString() %></span>
+            </div>
+            <% }) %>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:15px;font-weight:800;color:#16a34a;border-top:2px solid #16a34a;margin-top:4px;">
+              <span>TOTAL</span>
+              <span>GH¢<%= report.finance.total.toLocaleString() %></span>
+            </div>
+          </div>
+          <% } %>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>

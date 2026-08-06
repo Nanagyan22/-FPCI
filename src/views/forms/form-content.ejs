@@ -1,0 +1,380 @@
+<style>
+.custom-field-row { display:grid; grid-template-columns:1fr 180px 36px; gap:8px; margin-bottom:8px; align-items:center; }
+.custom-field-row input { margin:0; }
+.add-field-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; background:rgba(171,42,10,0.08); color:var(--primary); border:1.5px dashed rgba(171,42,10,0.3); border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; margin-top:8px; }
+.add-field-btn:hover { background:rgba(171,42,10,0.15); }
+.remove-field-btn { width:32px; height:32px; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; }
+.remove-field-btn:hover { background:#fecaca; }
+</style>
+
+<!-- TAB NAV -->
+<div class="tab-nav" id="formTabNav">
+  <button class="tab-btn" id="btnWeekly" onclick="switchFormTab('weekly')">
+    <i class="fas fa-calendar-week"></i> Weekly Report
+  </button>
+  <button class="tab-btn" id="btnMonthly" onclick="switchFormTab('monthly')">
+    <i class="fas fa-calendar-alt"></i> Monthly Report
+  </button>
+</div>
+
+<!-- ===================== WEEKLY FORM ===================== -->
+<div id="tab-weekly">
+<div class="form-card animate-in">
+  <div class="form-header">
+    <img src="/images/logo.png" alt="FPCI" class="form-header-logo" onerror="this.style.display='none'">
+    <h1>FLAMES OF POWER CHAPEL INTERNATIONAL</h1>
+    <h2>Flames Generation</h2>
+    <span class="report-type-badge"><i class="fas fa-calendar-week"></i> Weekly Assessment Form</span>
+  </div>
+  <div class="form-body">
+    <form action="/forms/weekly" method="POST" id="weeklyForm">
+      <input type="hidden" name="submittedViaLink" value="<%= typeof isPublic !== 'undefined' ? isPublic : false %>">
+      <input type="hidden" name="token" value="<%= typeof token !== 'undefined' ? token : '' %>">
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-info-circle"></i> Basic Information</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Weekly Date <span class="required">*</span></label>
+            <input type="date" name="weeklyDate" class="form-control" required value="<%= new Date().toISOString().split('T')[0] %>">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Branch <span class="required">*</span></label>
+            <select name="branch" id="weeklyBranch" class="form-control" required onchange="loadPastors(this.value,'weekly')">
+              <option value="">-- Select Branch --</option>
+              <% if(typeof branches!=='undefined'){branches.forEach(function(b){%>
+                <option value="<%= b._id %>"><%= b.name %></option>
+              <%})}%>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-calendar-check"></i> Days of Service</div>
+        <div class="form-check-group">
+          <%['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].forEach(function(day){%>
+          <label class="form-check">
+            <input type="checkbox" name="daysOfService" value="<%= day %>">
+            <span class="form-check-label"><%= day %></span>
+          </label>
+          <%})%>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-users"></i> Attendance Records</div>
+        <div class="form-row four">
+          <div class="form-group"><label class="form-label">Total Membership <span class="required">*</span></label><input type="number" name="totalMembership" class="form-control" min="0" required placeholder="0"></div>
+          <div class="form-group"><label class="form-label">Male <span class="required">*</span></label><input type="number" name="male" class="form-control" min="0" required placeholder="0"></div>
+          <div class="form-group"><label class="form-label">Female <span class="required">*</span></label><input type="number" name="female" class="form-control" min="0" required placeholder="0"></div>
+          <div class="form-group"><label class="form-label">Children <span class="required">*</span></label><input type="number" name="children" class="form-control" min="0" required placeholder="0"></div>
+        </div>
+        <div class="form-row" style="grid-template-columns:200px 1fr;">
+          <div class="form-group"><label class="form-label">Visitors</label><input type="number" name="visitors" class="form-control" min="0" placeholder="0"></div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-coins"></i> Financial Records</div>
+        <div class="form-row three">
+          <%var wf=[['tithes','Tithes',true],['offerings','Offering',true],['membershipDues','Membership Dues',true],['projectOffering','Project Offering',false],['childrenService','Children Service',false],['seeds','Seeds',false],['pledges','Pledges',false],['revivalPrograms','Revival/Programs',false],['bank','Bank',false],['otherFunds','Other Funds',false]];%>
+          <%wf.forEach(function(f){%>
+          <div class="form-group">
+            <label class="form-label"><%= f[1] %><%if(f[2]){%> <span class="required">*</span><%}%></label>
+            <div class="input-group"><span class="input-prefix">GH¢</span><input type="number" name="<%= f[0] %>" class="form-control financial w-finance" min="0" step="0.01" placeholder="0.00"<%if(f[2]){%> required<%}%>></div>
+          </div>
+          <%})%>
+        </div>
+
+        <!-- CUSTOM INCOME FIELDS -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1.5px dashed rgba(171,42,10,0.15);">
+          <div style="font-size:13px;font-weight:700;color:#4a2a10;margin-bottom:10px;">
+            <i class="fas fa-plus-circle" style="color:var(--primary);"></i> Additional Income Fields
+          </div>
+          <div id="weeklyCustomFinance"></div>
+          <button type="button" class="add-field-btn" onclick="addCustomField('weeklyCustomFinance','customFinanceLabels','customFinanceAmounts','w-finance')">
+            <i class="fas fa-plus"></i> Add Custom Income Field
+          </button>
+        </div>
+
+        <div style="background:linear-gradient(135deg,rgba(171,42,10,0.08),rgba(255,102,0,0.04));border-radius:10px;padding:16px 20px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;border:1.5px solid rgba(171,42,10,0.15);">
+          <span style="font-weight:700;font-size:15px;color:#1a0a03;"><i class="fas fa-calculator" style="color:var(--primary);margin-right:8px;"></i>Total Income</span>
+          <span style="font-size:26px;font-weight:900;color:var(--primary);">GH¢ <span id="weeklyTotal">0.00</span></span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-signature"></i> Certification & Signatures</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Prepared By <span class="required">*</span></label>
+            <input type="text" name="preparedBy" class="form-control" required placeholder="Full name">
+            <label class="form-label" style="margin-top:10px;">Draw Signature</label>
+            <div class="signature-wrapper">
+              <canvas id="weeklyPreparedSig" class="signature-pad" width="380" height="100"></canvas>
+              <div class="signature-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearSig('weeklyPreparedSig','weeklyPreparedSigData')"><i class="fas fa-eraser"></i> Clear</button>
+                <span style="font-size:11px;color:#8a6050;">Sign in the box above</span>
+              </div>
+            </div>
+            <input type="hidden" name="preparedBySignature" id="weeklyPreparedSigData">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Resident Pastor <span class="required">*</span></label>
+            <select name="residentPastor" id="weeklyPastorSelect" class="form-control" required>
+              <option value="">-- Select branch first --</option>
+              <%if(typeof pastors!=='undefined'){pastors.forEach(function(p){%>
+                <option value="<%= p.title %> <%= p.firstName %> <%= p.lastName %>"><%= p.title %> <%= p.firstName %> <%= p.lastName %></option>
+              <%})}%>
+            </select>
+            <label class="form-label" style="margin-top:10px;">Draw Signature</label>
+            <div class="signature-wrapper">
+              <canvas id="weeklyPastorSig" class="signature-pad" width="380" height="100"></canvas>
+              <div class="signature-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearSig('weeklyPastorSig','weeklyPastorSigData')"><i class="fas fa-eraser"></i> Clear</button>
+                <span style="font-size:11px;color:#8a6050;">Sign in the box above</span>
+              </div>
+            </div>
+            <input type="hidden" name="residentPastorSignature" id="weeklyPastorSigData">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-building"></i> Office Use Only</div>
+        <div class="office-use-box"><p style="color:#c4a98a;font-size:12px;font-style:italic;margin:0;">For administrative use — Headquarters staff only</p></div>
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:28px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-secondary" onclick="resetFormFields('weeklyForm')"><i class="fas fa-undo"></i> Reset</button>
+        <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-paper-plane"></i> Submit Weekly Report</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<!-- ===================== MONTHLY FORM ===================== -->
+<div id="tab-monthly" style="display:none;">
+<div class="form-card animate-in">
+  <div class="form-header">
+    <img src="/images/logo.png" alt="FPCI" class="form-header-logo" onerror="this.style.display='none'">
+    <h1>FLAMES OF POWER CHAPEL INTERNATIONAL</h1>
+    <h2>Flames Generation</h2>
+    <span class="report-type-badge"><i class="fas fa-calendar-alt"></i> Monthly Assessment Form</span>
+  </div>
+  <div class="form-body">
+    <form action="/forms/monthly" method="POST" id="monthlyForm">
+      <input type="hidden" name="token" value="<%= typeof token!=='undefined' ? token : '' %>">
+      <input type="hidden" name="year" value="<%= new Date().getFullYear() %>">
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-info-circle"></i> Basic Information</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Month <span class="required">*</span></label>
+            <select name="month" class="form-control" required>
+              <option value="">-- Select Month --</option>
+              <%var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+              months.forEach(function(m,i){%>
+                <option value="<%= i+1 %>"<%= (new Date().getMonth()===i)?' selected':'' %>><%= m %></option>
+              <%})%>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Branch <span class="required">*</span></label>
+            <select name="branch" id="monthlyBranch" class="form-control" required onchange="loadPastors(this.value,'monthly')">
+              <option value="">-- Select Branch --</option>
+              <%if(typeof branches!=='undefined'){branches.forEach(function(b){%>
+                <option value="<%= b._id %>"><%= b.name %></option>
+              <%})}%>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-users"></i> Attendance & Membership</div>
+        <div class="form-row four">
+          <div class="form-group"><label class="form-label">Male <span class="required">*</span></label><input type="number" name="membershipMale" class="form-control" min="0" required placeholder="0"></div>
+          <div class="form-group"><label class="form-label">Female <span class="required">*</span></label><input type="number" name="membershipFemale" class="form-control" min="0" required placeholder="0"></div>
+          <div class="form-group"><label class="form-label">Children <span class="required">*</span></label><input type="number" name="membershipChildren" class="form-control" min="0" required placeholder="0"></div>
+          <div class="form-group"><label class="form-label">Visitors <span class="required">*</span></label><input type="number" name="membershipVisitors" class="form-control" min="0" required placeholder="0"></div>
+        </div>
+        <div class="form-row" style="grid-template-columns:200px 1fr;">
+          <div class="form-group"><label class="form-label">Souls Added <span class="required">*</span></label><input type="number" name="soulsAdded" class="form-control" min="0" required placeholder="0"></div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-coins"></i> Income</div>
+        <div class="form-row three">
+          <%var mi=[['tithes','Tithes',true],['offerings','Offerings',true],['membershipDues','Membership Dues',true],['projectOffering','Project Offering',false],['childrenService','Children Service',false],['seeds','Seeds',false],['pledges','Pledges',false],['revivalPrograms','Revival/Programs',false],['bank','Bank',false],['otherFunds','Other Funds',false]];%>
+          <%mi.forEach(function(f){%>
+          <div class="form-group">
+            <label class="form-label"><%= f[1] %><%if(f[2]){%> <span class="required">*</span><%}%></label>
+            <div class="input-group"><span class="input-prefix">GH¢</span><input type="number" name="<%= f[0] %>" class="form-control financial m-income" min="0" step="0.01" placeholder="0.00"<%if(f[2]){%> required<%}%>></div>
+          </div>
+          <%})%>
+        </div>
+        <!-- CUSTOM INCOME -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1.5px dashed rgba(22,163,74,0.2);">
+          <div style="font-size:13px;font-weight:700;color:#4a2a10;margin-bottom:10px;">
+            <i class="fas fa-plus-circle" style="color:#16a34a;"></i> Additional Income Fields
+          </div>
+          <div id="monthlyCustomIncome"></div>
+          <button type="button" class="add-field-btn" style="border-color:rgba(22,163,74,0.3);color:#16a34a;background:rgba(22,163,74,0.06);" onclick="addCustomField('monthlyCustomIncome','customIncomeLabels','customIncomeAmounts','m-income')">
+            <i class="fas fa-plus"></i> Add Custom Income Field
+          </button>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(22,163,74,0.08),rgba(74,222,128,0.04));border-radius:10px;padding:14px 20px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;border:1.5px solid rgba(22,163,74,0.2);">
+          <span style="font-weight:700;font-size:14px;"><i class="fas fa-arrow-up" style="color:#16a34a;margin-right:8px;"></i>Total Income</span>
+          <span style="font-size:22px;font-weight:900;color:#16a34a;">GH¢ <span id="monthlyIncomeTotal">0.00</span></span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-receipt"></i> Expenditure</div>
+        <div class="form-row three">
+          <div class="form-group"><label class="form-label">Light: Church Premises <span class="required">*</span></label><div class="input-group"><span class="input-prefix">GH¢</span><input type="number" name="lightChurchPremises" class="form-control financial m-expense" min="0" step="0.01" placeholder="0.00" required></div></div>
+          <div class="form-group"><label class="form-label">Pastors Allowance <span class="required">*</span></label><div class="input-group"><span class="input-prefix">GH¢</span><input type="number" name="pastorsAllowance" class="form-control financial m-expense" min="0" step="0.01" placeholder="0.00" required></div></div>
+          <div class="form-group"><label class="form-label">Other Expenses <span class="required">*</span></label><div class="input-group"><span class="input-prefix">GH¢</span><input type="number" name="otherExpenses" class="form-control financial m-expense" min="0" step="0.01" placeholder="0.00" required></div></div>
+        </div>
+        <!-- CUSTOM EXPENDITURE -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1.5px dashed rgba(220,38,38,0.2);">
+          <div style="font-size:13px;font-weight:700;color:#4a2a10;margin-bottom:10px;">
+            <i class="fas fa-plus-circle" style="color:#dc2626;"></i> Additional Expenditure Fields
+          </div>
+          <div id="monthlyCustomExpense"></div>
+          <button type="button" class="add-field-btn" style="border-color:rgba(220,38,38,0.3);color:#dc2626;background:rgba(220,38,38,0.04);" onclick="addCustomField('monthlyCustomExpense','customExpenseLabels','customExpenseAmounts','m-expense')">
+            <i class="fas fa-plus"></i> Add Custom Expense Field
+          </button>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(220,38,38,0.06),rgba(248,113,113,0.03));border-radius:10px;padding:14px 20px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;border:1.5px solid rgba(220,38,38,0.15);">
+          <span style="font-weight:700;font-size:14px;"><i class="fas fa-arrow-down" style="color:#dc2626;margin-right:8px;"></i>Total Expenditure</span>
+          <span style="font-size:22px;font-weight:900;color:#dc2626;">GH¢ <span id="monthlyExpenseTotal">0.00</span></span>
+        </div>
+        <div style="background:linear-gradient(135deg,#1a0a03,#2d1205);border-radius:10px;padding:16px 24px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="color:rgba(255,204,0,0.7);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Income Over Expenditure</div>
+            <div style="color:rgba(255,255,255,0.4);font-size:11px;">Total Income minus Total Expenditure</div>
+          </div>
+          <span id="incomeOverExp" style="font-size:26px;font-weight:900;color:#4ade80;">GH¢ 0.00</span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-signature"></i> Certification & Signatures</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Prepared By <span class="required">*</span></label>
+            <input type="text" name="preparedBy" class="form-control" required placeholder="Full name">
+            <label class="form-label" style="margin-top:10px;">Draw Signature</label>
+            <div class="signature-wrapper">
+              <canvas id="monthlyPreparedSig" class="signature-pad" width="380" height="100"></canvas>
+              <div class="signature-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearSig('monthlyPreparedSig','monthlyPreparedSigData')"><i class="fas fa-eraser"></i> Clear</button>
+                <span style="font-size:11px;color:#8a6050;">Sign above</span>
+              </div>
+            </div>
+            <input type="hidden" name="preparedBySignature" id="monthlyPreparedSigData">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Resident Pastor <span class="required">*</span></label>
+            <select name="residentPastor" id="monthlyPastorSelect" class="form-control" required>
+              <option value="">-- Select branch first --</option>
+              <%if(typeof pastors!=='undefined'){pastors.forEach(function(p){%>
+                <option value="<%= p.title %> <%= p.firstName %> <%= p.lastName %>"><%= p.title %> <%= p.firstName %> <%= p.lastName %></option>
+              <%})}%>
+            </select>
+            <label class="form-label" style="margin-top:10px;">Draw Signature</label>
+            <div class="signature-wrapper">
+              <canvas id="monthlyPastorSig" class="signature-pad" width="380" height="100"></canvas>
+              <div class="signature-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearSig('monthlyPastorSig','monthlyPastorSigData')"><i class="fas fa-eraser"></i> Clear</button>
+                <span style="font-size:11px;color:#8a6050;">Sign above</span>
+              </div>
+            </div>
+            <input type="hidden" name="residentPastorSignature" id="monthlyPastorSigData">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title"><i class="fas fa-building"></i> Office Use Only</div>
+        <div class="office-use-box"><p style="color:#c4a98a;font-size:12px;font-style:italic;margin:0;">For administrative use only</p></div>
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:28px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-secondary" onclick="resetFormFields('monthlyForm')"><i class="fas fa-undo"></i> Reset</button>
+        <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-paper-plane"></i> Submit Monthly Report</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<script>
+// =========================================================
+// TAB SWITCHER - Simple & Reliable
+// =========================================================
+function switchFormTab(tab) {
+  var wEl = document.getElementById('tab-weekly');
+  var mEl = document.getElementById('tab-monthly');
+  var wBtn = document.getElementById('btnWeekly');
+  var mBtn = document.getElementById('btnMonthly');
+  if (!wEl || !mEl) return;
+  if (tab === 'monthly') {
+    wEl.style.display = 'none';
+    mEl.style.display = 'block';
+    if(wBtn) wBtn.classList.remove('active');
+    if(mBtn) mBtn.classList.add('active');
+  } else {
+    mEl.style.display = 'none';
+    wEl.style.display = 'block';
+    if(mBtn) mBtn.classList.remove('active');
+    if(wBtn) wBtn.classList.add('active');
+  }
+  window.scrollTo(0,0);
+}
+
+// Set active tab on load
+(function(){
+  var activeTab = '<%= typeof activeTab !== "undefined" ? activeTab : "weekly" %>';
+  switchFormTab(activeTab);
+})();
+
+// =========================================================
+// CUSTOM FIELD BUILDER
+// =========================================================
+function addCustomField(containerId, labelName, amountName, calcClass) {
+  var container = document.getElementById(containerId);
+  var row = document.createElement('div');
+  row.className = 'custom-field-row';
+  row.innerHTML =
+    '<input type="text" name="' + labelName + '" class="form-control" placeholder="Field name e.g. Harvest Offering" required>' +
+    '<div class="input-group" style="margin:0;">' +
+      '<span class="input-prefix" style="padding:8px 10px;font-size:12px;">GH¢</span>' +
+      '<input type="number" name="' + amountName + '" class="form-control financial ' + calcClass + '" min="0" step="0.01" placeholder="0.00">' +
+    '</div>' +
+    '<button type="button" class="remove-field-btn" onclick="removeCustomField(this)">' +
+      '<i class="fas fa-times"></i>' +
+    '</button>';
+  container.appendChild(row);
+
+  // Attach calc listener
+  var numInput = row.querySelector('input[type="number"]');
+  numInput.addEventListener('input', calcAll);
+}
+
+function removeCustomField(btn) {
+  btn.parentElement.remove();
+  calcAll();
+}
+
+function calcAll() {
+  calcWeeklyTotal();
+  calcMonthlyTotals();
+}
+</script>

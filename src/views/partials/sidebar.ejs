@@ -1,0 +1,95 @@
+<nav class="sidebar" id="sidebar">
+  <a href="/dashboard" class="sidebar-brand">
+    <img src="/images/logo.png" alt="FPCI Logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div style="display:none;width:48px;height:48px;background:linear-gradient(135deg,#ab2a0a,#FF6600);border-radius:50%;align-items:center;justify-content:center;border:2px solid #D4AF37;">
+      <span style="color:#FFCC00;font-weight:900;font-size:14px;">🔥</span>
+    </div>
+    <div class="sidebar-brand-text">
+      <div class="title">FPCI</div>
+      <div class="subtitle">Flames Generation</div>
+    </div>
+  </a>
+
+  <div class="sidebar-nav">
+    <div class="nav-section-title">Main</div>
+
+    <div class="nav-item">
+      <a href="/dashboard" class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'dashboard' ? 'active' : '' %>">
+        <i class="fas fa-chart-line"></i>
+        <span>Dashboard</span>
+      </a>
+    </div>
+
+    <div class="nav-item">
+      <a href="/forms" class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'forms' ? 'active' : '' %>">
+        <i class="fas fa-file-alt"></i>
+        <span>Submit Report</span>
+      </a>
+    </div>
+
+    <div class="nav-item">
+      <a href="/reports" class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'reports' ? 'active' : '' %>">
+        <i class="fas fa-table"></i>
+        <span>Raw Data</span>
+      </a>
+    </div>
+
+    <div class="nav-section-title">Management</div>
+
+    <div class="nav-item">
+      <a href="/branches" class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'branches' ? 'active' : '' %>">
+        <i class="fas fa-church"></i>
+        <span>Branches</span>
+      </a>
+    </div>
+
+    <% if (typeof user !== 'undefined' && user && ['super_admin','admin'].includes(user.role)) { %>
+    <div class="nav-item">
+      <a href="/admin/pastors" class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'pastors' ? 'active' : '' %>">
+        <i class="fas fa-user-tie"></i>
+        <span>Pastors</span>
+      </a>
+    </div>
+
+    <div class="nav-section-title">Admin</div>
+
+    <div class="nav-item">
+      <a href="/admin/links" class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'links' ? 'active' : '' %>">
+        <i class="fas fa-link"></i>
+        <span>Form Links</span>
+      </a>
+    </div>
+
+    <div class="nav-item">
+      <a href="/admin/users" class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'users' ? 'active' : '' %>">
+        <i class="fas fa-users-cog"></i>
+        <span>User Management</span>
+      </a>
+    </div>
+
+    <div class="nav-item">
+      <a href="/admin" class="nav-link <%= typeof currentPage !== 'undefined' && currentPage === 'admin' ? 'active' : '' %>">
+        <i class="fas fa-cog"></i>
+        <span>Admin Panel</span>
+      </a>
+    </div>
+    <% } %>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar">
+        <%= user ? user.firstName.charAt(0) + user.lastName.charAt(0) : 'U' %>
+      </div>
+      <div class="user-info-text" style="flex:1;min-width:0;">
+        <div class="name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          <%= user ? user.firstName + ' ' + user.lastName : 'Guest' %>
+        </div>
+        <div class="role"><%= user ? user.role.replace('_', ' ') : '' %></div>
+      </div>
+      <a href="/auth/logout" style="color:rgba(255,204,0,0.5);font-size:16px;margin-left:8px;" title="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </div>
+  </div>
+</nav>

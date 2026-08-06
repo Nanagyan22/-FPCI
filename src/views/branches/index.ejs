@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+<div class="app-wrapper">
+  <%- include('../partials/sidebar', { currentPage: 'branches', user: user }) %>
+  <div class="main-content">
+    <%- include('../partials/topbar', { pageTitle: 'Church Branches', pageSubtitle: 'Manage all FPCI branch locations' }) %>
+    <div class="content-wrapper">
+      <% if (success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success_msg %></div>
+      <% } %>
+      <% if (error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error_msg %></div>
+      <% } %>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div>
+          <span style="font-size:13px;color:#8a6050;">
+            <i class="fas fa-church" style="color:var(--primary);"></i>
+            <%= branches.length %> branch<%= branches.length !== 1 ? 'es' : '' %> total
+          </span>
+        </div>
+        <% if (user && ['super_admin','admin'].includes(user.role)) { %>
+        <a href="/branches/add" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Add Branch
+        </a>
+        <% } %>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;">
+        <% branches.forEach(branch => { %>
+        <div class="chart-card" style="border-top:4px solid <%= branch.isHeadquarters ? '#D4AF37' : branch.isActive ? 'var(--primary)' : '#6b7280' %>;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+            <div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:#8a6050;text-transform:uppercase;margin-bottom:4px;">
+                <%= branch.code %>
+                <% if (branch.isHeadquarters) { %><span style="background:rgba(212,175,55,0.15);color:#D4AF37;padding:2px 6px;border-radius:4px;margin-left:4px;">HQ</span><% } %>
+              </div>
+              <div style="font-size:17px;font-weight:800;color:#1a0a03;"><%= branch.name %></div>
+              <div style="font-size:13px;color:#8a6050;margin-top:4px;">
+                <i class="fas fa-map-marker-alt" style="color:var(--primary);font-size:11px;"></i>
+                <%= branch.location %><%= branch.region ? ', ' + branch.region : '' %>
+              </div>
+            </div>
+            <span class="status-badge <%= branch.isActive ? 'approved' : 'rejected' %>">
+              <%= branch.isActive ? 'Active' : 'Inactive' %>
+            </span>
+          </div>
+
+          <% if (branch.pastors && branch.pastors.length > 0) { %>
+          <div style="margin-bottom:12px;">
+            <div style="font-size:11px;color:#8a6050;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Pastors</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;">
+              <% branch.pastors.forEach(p => { %>
+              <span style="background:rgba(171,42,10,0.08);color:var(--primary);padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600;">
+                <%= p.title %> <%= p.lastName %>
+              </span>
+              <% }) %>
+            </div>
+          </div>
+          <% } %>
+
+          <% if (branch.phone || branch.email) { %>
+          <div style="font-size:12px;color:#8a6050;margin-bottom:12px;">
+            <% if (branch.phone) { %><span style="margin-right:12px;"><i class="fas fa-phone"></i> <%= branch.phone %></span><% } %>
+            <% if (branch.email) { %><span><i class="fas fa-envelope"></i> <%= branch.email %></span><% } %>
+          </div>
+          <% } %>
+
+          <% if (user && ['super_admin','admin'].includes(user.role)) { %>
+          <div style="display:flex;gap:8px;border-top:1px solid #f5ede8;padding-top:12px;">
+            <a href="/branches/edit/<%= branch._id %>" class="btn btn-secondary btn-sm">
+              <i class="fas fa-edit"></i> Edit
+            </a>
+            <form action="/branches/<%= branch._id %>?_method=DELETE" method="POST" style="display:inline;"
+              onsubmit="return confirm('Deactivate this branch?')">
+              <button class="btn btn-danger btn-sm"><i class="fas fa-ban"></i> Deactivate</button>
+            </form>
+          </div>
+          <% } %>
+        </div>
+        <% }) %>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>

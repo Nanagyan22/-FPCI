@@ -1,85 +1,79 @@
 // ============================================================
-// FPCI MAIN JAVASCRIPT
+// FPCI MAIN JS - Sidebar + Alerts + Animations
 // ============================================================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
-  // Sidebar toggle for mobile
-  const sidebarToggle = document.getElementById('sidebarToggle');
-  const sidebar = document.getElementById('sidebar');
-  if (sidebarToggle) {
-    sidebarToggle.style.display = 'flex';
-    sidebarToggle.addEventListener('click', () => {
+  // ---- SIDEBAR TOGGLE (Mobile) ----
+  var sidebar = document.getElementById('sidebar');
+  var toggleBtn = document.getElementById('sidebarToggle');
+  var overlay = document.getElementById('sidebarOverlay');
+
+  if (toggleBtn && sidebar) {
+    toggleBtn.addEventListener('click', function () {
       sidebar.classList.toggle('open');
+      if (overlay) overlay.classList.toggle('open');
     });
   }
 
-  // Auto-dismiss alerts
-  const alerts = document.querySelectorAll('.alert');
-  alerts.forEach(alert => {
-    setTimeout(() => {
+  if (overlay) {
+    overlay.addEventListener('click', function () {
+      if (sidebar) sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+
+  // Close sidebar when nav link clicked on mobile
+  if (sidebar) {
+    sidebar.querySelectorAll('.nav-link').forEach(function (link) {
+      link.addEventListener('click', function () {
+        if (window.innerWidth < 992) {
+          sidebar.classList.remove('open');
+          if (overlay) overlay.classList.remove('open');
+        }
+      });
+    });
+  }
+
+  // ---- AUTO-DISMISS ALERTS ----
+  document.querySelectorAll('.alert').forEach(function (alert) {
+    setTimeout(function () {
       alert.style.transition = 'all 0.4s ease';
       alert.style.opacity = '0';
-      alert.style.transform = 'translateY(-10px)';
-      setTimeout(() => alert.remove(), 400);
+      alert.style.transform = 'translateY(-8px)';
+      setTimeout(function () { if (alert.parentNode) alert.remove(); }, 400);
     }, 5000);
   });
 
-  // Animate KPI values
-  document.querySelectorAll('.kpi-value').forEach(el => {
-    const text = el.textContent.trim();
-    const num = parseFloat(text.replace(/[^0-9.]/g, ''));
-    if (num > 0 && !isNaN(num)) {
-      let start = 0;
-      const duration = 1200;
-      const step = num / (duration / 16);
-      const prefix = text.replace(/[\d,.]+/, '').trim().split('').filter((c,i) => i < text.indexOf(text.match(/\d/)[0])).join('');
-      const timer = setInterval(() => {
-        start = Math.min(start + step, num);
-        el.textContent = prefix + Math.floor(start).toLocaleString();
-        if (start >= num) {
-          el.textContent = text;
-          clearInterval(timer);
-        }
-      }, 16);
+  // ---- ANIMATE KPI NUMBERS ----
+  document.querySelectorAll('.kpi-value').forEach(function (el) {
+    var text = el.textContent.trim();
+    var numMatch = text.match(/[\d,]+(\.\d+)?/);
+    if (!numMatch) return;
+    var numStr = numMatch[0].replace(/,/g, '');
+    var num = parseFloat(numStr);
+    if (isNaN(num) || num === 0) return;
+    var prefix = text.substring(0, text.indexOf(numMatch[0]));
+    var suffix = text.substring(text.indexOf(numMatch[0]) + numMatch[0].length);
+    var start = 0;
+    var duration = 1000;
+    var startTime = null;
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      var progress = Math.min((timestamp - startTime) / duration, 1);
+      var val = Math.floor(progress * num);
+      el.textContent = prefix + val.toLocaleString() + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+      else el.textContent = text;
     }
+    requestAnimationFrame(step);
   });
 
-  // Animate progress bars
-  document.querySelectorAll('.progress-fill').forEach(bar => {
-    const width = bar.style.width;
+  // ---- ANIMATE PROGRESS BARS ----
+  document.querySelectorAll('.progress-fill').forEach(function (bar) {
+    var width = bar.style.width;
     bar.style.width = '0%';
-    setTimeout(() => { bar.style.width = width; }, 200);
+    setTimeout(function () { bar.style.width = width; }, 200);
   });
 
 });
-
-// Tab switcher
-function switchTab(tab) {
-  document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
-  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-  const tabEl = document.getElementById('tab-' + tab);
-  if (tabEl) tabEl.classList.remove('hidden');
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  tabBtns.forEach(btn => {
-    if (btn.textContent.toLowerCase().includes(tab)) btn.classList.add('active');
-  });
-}
-
-// Reset form
-function resetForm(formId) {
-  if (confirm('Reset all form fields?')) {
-    document.getElementById(formId).reset();
-    // Clear totals
-    ['weeklyTotal','monthlyIncomeTotal','monthlyExpenseTotal'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = '0.00';
-    });
-    // Clear signatures
-    document.querySelectorAll('.signature-pad').forEach(canvas => {
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    });
-    document.querySelectorAll('[id$="SigData"]').forEach(inp => inp.value = '');
-  }
-}

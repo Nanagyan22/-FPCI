@@ -20,12 +20,25 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('=== LOGIN ATTEMPT ===');
+    console.log('Email:', email);
+    console.log('Password provided:', !!password);
+
     if (!email || !password) {
       req.flash('error_msg', 'Please enter both email and password');
       return res.redirect('/auth/login');
     }
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    console.log('User found:', !!user);
+    if (user) {
+      console.log('User role:', user.role);
+      console.log('User isActive:', user.isActive);
+      console.log('User firstName:', user.firstName);
+      console.log('User lastName:', user.lastName);
+      console.log('Has password:', !!user.password);
+    }
 
     if (!user) {
       req.flash('error_msg', 'Invalid email or password');
@@ -38,6 +51,7 @@ router.post('/login', async (req, res) => {
     }
 
     const isMatch = await user.comparePassword(password);
+    console.log('Password match:', isMatch);
 
     if (!isMatch) {
       req.flash('error_msg', 'Invalid email or password');
@@ -58,6 +72,8 @@ router.post('/login', async (req, res) => {
       branch: user.branch
     };
 
+    console.log('Session set:', req.session.user);
+
     // Save session explicitly before redirect
     req.session.save((err) => {
       if (err) {
@@ -65,6 +81,7 @@ router.post('/login', async (req, res) => {
         req.flash('error_msg', 'Login error. Please try again.');
         return res.redirect('/auth/login');
       }
+      console.log('Session saved successfully, redirecting to dashboard');
       res.redirect('/dashboard');
     });
 

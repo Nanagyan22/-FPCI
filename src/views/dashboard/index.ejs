@@ -7,6 +7,17 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .kpi-grid-top    { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+    .kpi-grid-bottom { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+    .insights-grid-33 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+    @media(max-width:900px){
+      .kpi-grid-top,.kpi-grid-bottom,.insights-grid-33{ grid-template-columns:repeat(2,1fr); }
+    }
+    @media(max-width:600px){
+      .kpi-grid-top,.kpi-grid-bottom,.insights-grid-33{ grid-template-columns:1fr; }
+    }
+  </style>
 </head>
 <body>
 <div class="app-wrapper">
@@ -56,8 +67,8 @@
         </form>
       </div>
 
-      <!-- KPI CARDS -->
-      <div class="kpi-grid animate-in">
+      <!-- KPI ROW 1 (3 cards) -->
+      <div class="kpi-grid-top animate-in">
         <div class="kpi-card red">
           <div class="kpi-header">
             <div class="kpi-icon red"><i class="fas fa-coins"></i></div>
@@ -69,6 +80,7 @@
           <div class="kpi-label">Total Income</div>
           <div class="kpi-trend"><i class="fas fa-chart-line"></i> vs previous period</div>
         </div>
+
         <div class="kpi-card blue">
           <div class="kpi-header">
             <div class="kpi-icon blue"><i class="fas fa-users"></i></div>
@@ -80,6 +92,7 @@
           <div class="kpi-label">Total Attendance</div>
           <div class="kpi-trend"><i class="fas fa-church"></i> <%= kpis.totalBranches %> active branches</div>
         </div>
+
         <div class="kpi-card green">
           <div class="kpi-header">
             <div class="kpi-icon green"><i class="fas fa-cross"></i></div>
@@ -89,6 +102,10 @@
           <div class="kpi-label">Souls Added</div>
           <div class="kpi-trend"><i class="fas fa-praying-hands"></i> Kingdom growth</div>
         </div>
+      </div>
+
+      <!-- KPI ROW 2 (3 cards) -->
+      <div class="kpi-grid-bottom animate-in">
         <div class="kpi-card gold">
           <div class="kpi-header">
             <div class="kpi-icon gold"><i class="fas fa-balance-scale"></i></div>
@@ -98,26 +115,20 @@
           <div class="kpi-label">Net <%= (kpis.netSurplus||0)>=0?'Surplus':'Deficit' %></div>
           <div class="kpi-trend"><i class="fas fa-minus"></i> Expenses: GH¢<%= (kpis.totalExpenditure||0).toLocaleString('en-GH',{maximumFractionDigits:0}) %></div>
         </div>
+
         <div class="kpi-card orange">
-          <div class="kpi-header"><div class="kpi-icon orange"><i class="fas fa-map-marker-alt"></i></div><div class="kpi-badge neutral">Active</div></div>
+          <div class="kpi-header">
+            <div class="kpi-icon orange"><i class="fas fa-map-marker-alt"></i></div>
+            <div class="kpi-badge neutral">Active</div>
+          </div>
           <div class="kpi-value"><%= kpis.totalBranches||0 %></div>
           <div class="kpi-label">Active Branches</div>
           <div class="kpi-trend"><i class="fas fa-globe-africa"></i> Across Ghana</div>
         </div>
-        <div class="kpi-card purple">
-          <div class="kpi-header"><div class="kpi-icon purple"><i class="fas fa-file-invoice"></i></div><div class="kpi-badge neutral">All Time</div></div>
-          <div class="kpi-value"><%= kpis.totalMonthlyReports||0 %></div>
-          <div class="kpi-label">Monthly Reports</div>
-          <div class="kpi-trend"><i class="fas fa-calendar-check"></i> All submissions</div>
-        </div>
-        <div class="kpi-card teal">
-          <div class="kpi-header"><div class="kpi-icon teal"><i class="fas fa-calendar-week"></i></div><div class="kpi-badge neutral">All Time</div></div>
-          <div class="kpi-value"><%= kpis.totalWeeklyReports||0 %></div>
-          <div class="kpi-label">Weekly Reports</div>
-          <div class="kpi-trend"><i class="fas fa-history"></i> All weekly records</div>
-        </div>
+
         <div class="kpi-card rose">
-          <div class="kpi-header"><div class="kpi-icon rose"><i class="fas fa-clock"></i></div>
+          <div class="kpi-header">
+            <div class="kpi-icon rose"><i class="fas fa-clock"></i></div>
             <div class="kpi-badge <%= (kpis.pendingReports||0)>0?'down':'up' %>">
               <%= (kpis.pendingReports||0)>0?'Pending':'All Clear' %>
             </div>
@@ -128,23 +139,46 @@
         </div>
       </div>
 
-      <!-- BEST PERFORMERS -->
+      <!-- TOP PERFORMERS 3,3 -->
       <h3 style="font-size:15px;font-weight:700;color:#1a0a03;margin-bottom:14px;">
         <i class="fas fa-trophy" style="color:var(--gold);margin-right:8px;"></i>
         Top Performers · <%= filterYear %><%= filterMonth>0?' · '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][filterMonth-1]:'' %>
       </h3>
-      <div class="insights-grid animate-in">
+
+      <!-- Performers Row 1 -->
+      <div class="insights-grid-33 animate-in">
         <%
-        var bests = [
-          {label:'Best in Finance',icon:'fas fa-coins',color:'var(--gold)',b:bestBranches.bestFinanceBranch,val:bestBranches.bestFinanceBranch?'GH¢'+(bestBranches.bestFinanceBranch.totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}):'—',metric:'Total income',borderColor:'var(--gold)',crown:'🏆'},
-          {label:'Best Attendance',icon:'fas fa-users',color:'#0284c7',b:bestBranches.bestAttendanceBranch,val:bestBranches.bestAttendanceBranch?(bestBranches.bestAttendanceBranch.totalAttendance||0).toLocaleString():'—',metric:'Members attended',borderColor:'#0284c7',crown:'👥'},
-          {label:'Best Soul Winning',icon:'fas fa-cross',color:'#16a34a',b:bestBranches.bestSoulsBranch,val:bestBranches.bestSoulsBranch?(bestBranches.bestSoulsBranch.totalSouls||0):'—',metric:'Souls added',borderColor:'#16a34a',crown:'✝'},
-          {label:'Overall Best',icon:'fas fa-fire',color:'var(--primary)',b:bestBranches.overallBest,val:bestBranches.overallBest?Math.round(bestBranches.overallBest.score||0).toLocaleString():'—',metric:'Composite score',borderColor:'var(--primary)',crown:'🔥'},
-          {label:'Needs Attention',icon:'fas fa-exclamation-triangle',color:'#dc2626',b:branchPerformance.length>1?branchPerformance[branchPerformance.length-1]:null,val:branchPerformance.length>1?'GH¢'+(branchPerformance[branchPerformance.length-1].totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}):'—',metric:'Lowest income',borderColor:'#dc2626',crown:'⚠'},
-          {label:'Most Consistent',icon:'fas fa-clipboard-check',color:'#7c3aed',b:branchPerformance.length>0?[...branchPerformance].sort(function(a,b){return b.reportCount-a.reportCount})[0]:null,val:branchPerformance.length>0?([...branchPerformance].sort(function(a,b){return b.reportCount-a.reportCount})[0].reportCount)+' reports':'—',metric:'Best reporting rate',borderColor:'#7c3aed',crown:'📋'}
+        var performers1 = [
+          {label:'Best in Finance',    icon:'fas fa-coins',            color:'var(--gold)',    b:bestBranches.bestFinanceBranch,    val:bestBranches.bestFinanceBranch?'GH¢'+(bestBranches.bestFinanceBranch.totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}):'—',    metric:'Total income',       borderColor:'var(--gold)',  crown:'🏆'},
+          {label:'Best Attendance',    icon:'fas fa-users',            color:'#0284c7',        b:bestBranches.bestAttendanceBranch, val:bestBranches.bestAttendanceBranch?(bestBranches.bestAttendanceBranch.totalAttendance||0).toLocaleString():'—',                                   metric:'Members attended',   borderColor:'#0284c7',      crown:'👥'},
+          {label:'Best Soul Winning',  icon:'fas fa-cross',            color:'#16a34a',        b:bestBranches.bestSoulsBranch,      val:bestBranches.bestSoulsBranch?(bestBranches.bestSoulsBranch.totalSouls||0):'—',                                                                  metric:'Souls added',        borderColor:'#16a34a',      crown:'✝'}
         ];
         %>
-        <% bests.forEach(function(item){ %>
+        <% performers1.forEach(function(item){ %>
+        <div class="insight-card" style="border-top:4px solid <%= item.borderColor %>;">
+          <span class="crown"><%= item.crown %></span>
+          <div class="insight-type" style="color:<%= item.color %>;"><i class="<%= item.icon %>"></i> <%= item.label %></div>
+          <% if(item.b){ %>
+            <div class="insight-branch-name"><%= item.b.branchName %></div>
+            <div class="insight-value" style="background:none;-webkit-text-fill-color:<%= item.color %>;color:<%= item.color %>;font-size:20px;font-weight:800;"><%= item.val %></div>
+            <div class="insight-metric"><%= item.metric %></div>
+          <% }else{ %>
+            <div style="color:#8a6050;font-size:14px;margin-top:8px;">No data yet</div>
+          <% } %>
+        </div>
+        <% }) %>
+      </div>
+
+      <!-- Performers Row 2 -->
+      <div class="insights-grid-33 animate-in">
+        <%
+        var performers2 = [
+          {label:'Overall Best',    icon:'fas fa-fire',              color:'var(--primary)', b:bestBranches.overallBest,          val:bestBranches.overallBest?Math.round(bestBranches.overallBest.score||0).toLocaleString():'—',                                                     metric:'Composite score',    borderColor:'var(--primary)',crown:'🔥'},
+          {label:'Needs Attention', icon:'fas fa-exclamation-triangle',color:'#dc2626',      b:branchPerformance.length>1?branchPerformance[branchPerformance.length-1]:null, val:branchPerformance.length>1?'GH¢'+(branchPerformance[branchPerformance.length-1].totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}):'—', metric:'Lowest income', borderColor:'#dc2626', crown:'⚠'},
+          {label:'Most Consistent', icon:'fas fa-clipboard-check',   color:'#7c3aed',        b:branchPerformance.length>0?[...branchPerformance].sort(function(a,b){return b.reportCount-a.reportCount})[0]:null, val:branchPerformance.length>0?([...branchPerformance].sort(function(a,b){return b.reportCount-a.reportCount})[0].reportCount)+' reports':'—', metric:'Best reporting rate', borderColor:'#7c3aed', crown:'📋'}
+        ];
+        %>
+        <% performers2.forEach(function(item){ %>
         <div class="insight-card" style="border-top:4px solid <%= item.borderColor %>;">
           <span class="crown"><%= item.crown %></span>
           <div class="insight-type" style="color:<%= item.color %>;"><i class="<%= item.icon %>"></i> <%= item.label %></div>
@@ -313,10 +347,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="/js/main.js"></script>
 <script>
-// Register datalabels plugin globally
 Chart.register(ChartDataLabels);
-
-// Global defaults
 Chart.defaults.font.family = "'Inter','Segoe UI',sans-serif";
 Chart.defaults.font.size   = 11;
 Chart.defaults.color       = '#4a2a10';
@@ -327,68 +358,52 @@ Chart.defaults.plugins.tooltip.titleColor  = '#FFCC00';
 Chart.defaults.plugins.tooltip.bodyColor   = 'rgba(255,230,200,0.9)';
 Chart.defaults.plugins.tooltip.padding     = 10;
 Chart.defaults.plugins.tooltip.cornerRadius = 8;
-// Disable datalabels by default — enable per chart
-Chart.defaults.plugins.datalabels.display = false;
+Chart.defaults.plugins.datalabels.display  = false;
 
 const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const monthlyTrends = <%- JSON.stringify(monthlyTrends) %>;
+const weeklyTrends  = <%- JSON.stringify(weeklyTrends) %>;
+const branchPerf    = <%- JSON.stringify(branchPerformance) %>;
+const incBreakdown  = <%- JSON.stringify(incomeBreakdown) %>;
+const attBreakdown  = <%- JSON.stringify(attendanceBreakdown) %>;
 
-const monthlyTrends  = <%- JSON.stringify(monthlyTrends) %>;
-const weeklyTrends   = <%- JSON.stringify(weeklyTrends) %>;
-const branchPerf     = <%- JSON.stringify(branchPerformance) %>;
-const incBreakdown   = <%- JSON.stringify(incomeBreakdown) %>;
-const attBreakdown   = <%- JSON.stringify(attendanceBreakdown) %>;
-
-// ── CHART 1: Income & Attendance Trend (LINE) ──────────────
+// CHART 1: Trend Line
 (function(){
   var ctx = document.getElementById('trendChart'); if(!ctx) return;
   var labels     = monthlyTrends.map(t => monthNames[t._id.month-1]+' '+t._id.year);
   var income     = monthlyTrends.map(t => t.totalIncome||0);
   var attendance = monthlyTrends.map(t => t.totalAttendance||0);
   new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels.length ? labels : ['No Data'],
-      datasets: [
-        {
-          label: 'Income (GH¢)',
-          data: income.length ? income : [0],
+    type:'line',
+    data:{
+      labels: labels.length?labels:['No Data'],
+      datasets:[
+        { label:'Income (GH¢)', data:income.length?income:[0],
           borderColor:'#ab2a0a', backgroundColor:'rgba(171,42,10,0.07)',
           borderWidth:2.5, pointBackgroundColor:'#ab2a0a', pointRadius:5, pointHoverRadius:8,
           fill:true, tension:0.4, yAxisID:'y',
-          datalabels: {
-            display: true,
-            align: 'top',
-            color: '#ab2a0a',
-            font: { weight:'bold', size:9 },
-            formatter: v => v>0 ? 'GH¢'+(v>=1000?(v/1000).toFixed(1)+'K':v.toFixed(0)) : ''
-          }
+          datalabels:{ display:true, align:'top', color:'#ab2a0a', font:{weight:'bold',size:9},
+            formatter: v => v>0?'GH¢'+(v>=1000?(v/1000).toFixed(1)+'K':v.toFixed(0)):'' }
         },
-        {
-          label: 'Attendance',
-          data: attendance.length ? attendance : [0],
+        { label:'Attendance', data:attendance.length?attendance:[0],
           borderColor:'#0284c7', backgroundColor:'rgba(2,132,199,0.05)',
           borderWidth:2.5, pointBackgroundColor:'#0284c7', pointRadius:5, pointHoverRadius:8,
           fill:true, tension:0.4, yAxisID:'y1',
-          datalabels: {
-            display: true,
-            align: 'bottom',
-            color: '#0284c7',
-            font: { weight:'bold', size:9 },
-            formatter: v => v>0 ? v.toLocaleString() : ''
-          }
+          datalabels:{ display:true, align:'bottom', color:'#0284c7', font:{weight:'bold',size:9},
+            formatter: v => v>0?v.toLocaleString():'' }
         }
       ]
     },
-    options: {
+    options:{
       responsive:true, maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
       plugins:{
         legend:{ position:'top' },
-        tooltip:{ callbacks:{ label: ctx => ctx.datasetIndex===0?' Income: GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0}):'  Attendance: '+ctx.raw.toLocaleString() } },
+        tooltip:{ callbacks:{ label: c => c.datasetIndex===0?' Income: GH¢'+c.raw.toLocaleString('en-GH',{maximumFractionDigits:0}):'  Attendance: '+c.raw.toLocaleString() } },
         datalabels:{}
       },
       scales:{
-        y:{ type:'linear', position:'left', grid:{color:'rgba(0,0,0,0.04)'}, ticks:{ callback: v => 'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v) } },
+        y:{ type:'linear', position:'left', grid:{color:'rgba(0,0,0,0.04)'}, ticks:{callback:v=>'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v)} },
         y1:{ type:'linear', position:'right', grid:{drawOnChartArea:false} },
         x:{ grid:{display:false} }
       }
@@ -396,34 +411,29 @@ const attBreakdown   = <%- JSON.stringify(attendanceBreakdown) %>;
   });
 })();
 
-// ── CHART 2: Attendance Donut ──────────────────────────────
+// CHART 2: Attendance Donut
 (function(){
   var ctx = document.getElementById('attendanceDonut'); if(!ctx) return;
   var data  = [attBreakdown.male||0, attBreakdown.female||0, attBreakdown.children||0, attBreakdown.visitors||0];
   var total = data.reduce((a,b)=>a+b,0);
   new Chart(ctx, {
     type:'doughnut',
-    data:{
-      labels:['Male','Female','Children','Visitors'],
+    data:{ labels:['Male','Female','Children','Visitors'],
       datasets:[{ data, backgroundColor:['#0284c7','#e11d48','#16a34a','#d97706'], borderColor:'white', borderWidth:3, hoverOffset:6 }]
     },
     options:{
       responsive:true, maintainAspectRatio:false, cutout:'72%',
       plugins:{
         legend:{ position:'bottom', labels:{ padding:10, font:{size:10} } },
-        tooltip:{ callbacks:{ label: ctx => { var pct=total>0?((ctx.raw/total)*100).toFixed(1):0; return ' '+ctx.label+': '+ctx.raw.toLocaleString()+' ('+pct+'%)'; } } },
-        datalabels:{
-          display: true,
-          color: '#fff',
-          font: { weight:'bold', size:10 },
-          formatter: (v,ctx) => { var pct=total>0?((v/total)*100).toFixed(0):0; return pct>5?pct+'%':''; }
-        }
+        tooltip:{ callbacks:{ label: c => { var pct=total>0?((c.raw/total)*100).toFixed(1):0; return ' '+c.label+': '+c.raw.toLocaleString()+' ('+pct+'%)'; } } },
+        datalabels:{ display:true, color:'#fff', font:{weight:'bold',size:10},
+          formatter:(v)=>{ var pct=total>0?((v/total)*100).toFixed(0):0; return pct>5?pct+'%':''; } }
       }
     }
   });
 })();
 
-// ── CHART 3: Income Sources Donut ──────────────────────────
+// CHART 3: Income Donut
 (function(){
   var ctx = document.getElementById('incomeDonut'); if(!ctx) return;
   var labels = ['Tithes','Offerings','Mbr Dues','Project','Children','Seeds','Pledges','Revival','Bank','Other'];
@@ -439,19 +449,15 @@ const attBreakdown   = <%- JSON.stringify(attendanceBreakdown) %>;
       responsive:true, maintainAspectRatio:false, cutout:'68%',
       plugins:{
         legend:{ display:false },
-        tooltip:{ callbacks:{ label: ctx => ' '+ctx.label+': GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0}) } },
-        datalabels:{
-          display: ctx => ctx.dataset.data[ctx.dataIndex] > 0 && total > 0 && ((ctx.dataset.data[ctx.dataIndex]/total)*100) > 4,
-          color:'#fff',
-          font:{ weight:'bold', size:9 },
-          formatter:(v) => total>0?((v/total)*100).toFixed(0)+'%':''
-        }
+        tooltip:{ callbacks:{ label: c => ' '+c.label+': GH¢'+c.raw.toLocaleString('en-GH',{maximumFractionDigits:0}) } },
+        datalabels:{ display: c => c.dataset.data[c.dataIndex]>0 && total>0 && ((c.dataset.data[c.dataIndex]/total)*100)>4,
+          color:'#fff', font:{weight:'bold',size:9}, formatter: v => total>0?((v/total)*100).toFixed(0)+'%':'' }
       }
     }
   });
 })();
 
-// ── CHART 4: Branch Bar ────────────────────────────────────
+// CHART 4: Branch Bar
 (function(){
   var ctx = document.getElementById('branchBar'); if(!ctx) return;
   var labels = branchPerf.map(b => b.branchName.replace(' Branch',''));
@@ -460,30 +466,30 @@ const attBreakdown   = <%- JSON.stringify(attendanceBreakdown) %>;
   new Chart(ctx, {
     type:'bar',
     data:{
-      labels: labels.length ? labels : ['No Data'],
+      labels: labels.length?labels:['No Data'],
       datasets:[
-        { label:'Income (GH¢)',      data:income.length?income:[0], backgroundColor:'rgba(171,42,10,0.85)', borderRadius:5, borderSkipped:false,
-          datalabels:{ display:true, anchor:'end', align:'end', color:'#ab2a0a', font:{weight:'bold',size:8}, formatter: v => v>0?'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v):'' } },
+        { label:'Income (GH¢)', data:income.length?income:[0], backgroundColor:'rgba(171,42,10,0.85)', borderRadius:5, borderSkipped:false,
+          datalabels:{ display:true, anchor:'end', align:'end', color:'#ab2a0a', font:{weight:'bold',size:8}, formatter:v=>v>0?'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v):'' } },
         { label:'Expenditure (GH¢)', data:expend.length?expend:[0], backgroundColor:'rgba(255,102,0,0.55)', borderRadius:5, borderSkipped:false,
-          datalabels:{ display:true, anchor:'end', align:'end', color:'#FF6600', font:{weight:'bold',size:8}, formatter: v => v>0?'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v):'' } }
+          datalabels:{ display:true, anchor:'end', align:'end', color:'#FF6600', font:{weight:'bold',size:8}, formatter:v=>v>0?'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v):'' } }
       ]
     },
     options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
         legend:{ position:'top' },
-        tooltip:{ callbacks:{ label: ctx => ' '+ctx.dataset.label+': GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0}) } },
+        tooltip:{ callbacks:{ label: c => ' '+c.dataset.label+': GH¢'+c.raw.toLocaleString('en-GH',{maximumFractionDigits:0}) } },
         datalabels:{}
       },
       scales:{
-        x:{ grid:{display:false}, ticks:{ font:{size:10}, maxRotation:45 } },
-        y:{ grid:{color:'rgba(0,0,0,0.04)'}, ticks:{ callback: v => 'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v) } }
+        x:{ grid:{display:false}, ticks:{font:{size:10},maxRotation:45} },
+        y:{ grid:{color:'rgba(0,0,0,0.04)'}, ticks:{callback:v=>'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v)} }
       }
     }
   });
 })();
 
-// ── CHART 5: Weekly Line ───────────────────────────────────
+// CHART 5: Weekly Line
 (function(){
   var ctx = document.getElementById('weeklyChart'); if(!ctx) return;
   var labels = weeklyTrends.map(w => 'Wk '+w._id.week);
@@ -505,7 +511,7 @@ const attBreakdown   = <%- JSON.stringify(attendanceBreakdown) %>;
       interaction:{ mode:'index', intersect:false },
       plugins:{
         legend:{ position:'top' },
-        tooltip:{ callbacks:{ label: ctx => ctx.datasetIndex===0?' GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0}):' Att: '+ctx.raw.toLocaleString() } },
+        tooltip:{ callbacks:{ label: c => c.datasetIndex===0?' GH¢'+c.raw.toLocaleString('en-GH',{maximumFractionDigits:0}):' Att: '+c.raw.toLocaleString() } },
         datalabels:{}
       },
       scales:{
@@ -517,7 +523,7 @@ const attBreakdown   = <%- JSON.stringify(attendanceBreakdown) %>;
   });
 })();
 
-// ── CHART 6: Souls Bar ────────────────────────────────────
+// CHART 6: Souls Bar
 (function(){
   var ctx = document.getElementById('soulsChart'); if(!ctx) return;
   var labels = monthlyTrends.map(t => monthNames[t._id.month-1]);
@@ -537,7 +543,7 @@ const attBreakdown   = <%- JSON.stringify(attendanceBreakdown) %>;
       responsive:true, maintainAspectRatio:false,
       plugins:{
         legend:{ display:false },
-        tooltip:{ callbacks:{ label: ctx => ' Souls: '+ctx.raw } },
+        tooltip:{ callbacks:{ label: c => ' Souls: '+c.raw } },
         datalabels:{}
       },
       scales:{

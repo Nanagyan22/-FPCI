@@ -10,135 +10,119 @@
 </head>
 <body>
 <div class="app-wrapper">
-  <%- include('../partials/sidebar', { currentPage:'dashboard', user:user }) %>
+  <%- include('../partials/sidebar', { currentPage: 'dashboard', user: user }) %>
   <div class="main-content">
-    <%- include('../partials/topbar', { pageTitle:'Analytics Dashboard', pageSubtitle:'Real-time Church Performance · '+filterYear }) %>
+    <%- include('../partials/topbar', { pageTitle: 'Dashboard', pageSubtitle: 'FPCI Church Management Overview' }) %>
     <div class="content-wrapper">
 
-      <% if(success_msg&&success_msg.length>0){%><div class="alert alert-success"><i class="fas fa-check-circle"></i><%=success_msg%></div><%}%>
-      <% if(error_msg&&error_msg.length>0){%><div class="alert alert-error"><i class="fas fa-exclamation-circle"></i><%=error_msg%></div><%}%>
+      <% if (success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success_msg %></div>
+      <% } %>
+      <% if (error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error_msg %></div>
+      <% } %>
 
-      <!-- FILTERS -->
-      <form method="GET" action="/dashboard" id="filterForm">
-        <div class="filters-bar animate-in">
-          <i class="fas fa-filter" style="color:var(--primary);flex-shrink:0;"></i>
-          <span class="filter-label" style="margin-right:4px;">Filter:</span>
-
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <!-- FILTER BAR -->
+      <div class="filters-bar animate-in">
+        <i class="fas fa-filter" style="color:var(--primary);"></i>
+        <form method="GET" action="/dashboard" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;flex:1;">
+          <div class="filter-group">
             <label class="filter-label">Year</label>
             <select name="year" class="filter-select" onchange="this.form.submit()">
-              <%for(let y=new Date().getFullYear();y>=2020;y--){%>
-                <option value="<%=y%>"<%=y===filterYear?' selected':''%>><%=y%></option>
-              <%}%>
+              <% for(let y=new Date().getFullYear();y>=2020;y--){ %>
+                <option value="<%= y %>" <%= filterYear==y?'selected':'' %>><%= y %></option>
+              <% } %>
             </select>
           </div>
-
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <div class="filter-group">
             <label class="filter-label">Month</label>
             <select name="month" class="filter-select" onchange="this.form.submit()">
-              <option value="0"<%=filterMonth===0?' selected':''%>>All Months</option>
-              <%['January','February','March','April','May','June','July','August','September','October','November','December'].forEach(function(m,i){%>
-                <option value="<%=i+1%>"<%=filterMonth===i+1?' selected':''%>><%=m%></option>
-              <%})%>
+              <option value="0" <%= filterMonth==0?'selected':'' %>>All Months</option>
+              <% ['January','February','March','April','May','June','July','August','September','October','November','December'].forEach((m,i)=>{ %>
+                <option value="<%= i+1 %>" <%= filterMonth==i+1?'selected':'' %>><%= m %></option>
+              <% }) %>
             </select>
           </div>
-
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <div class="filter-group">
             <label class="filter-label">Branch</label>
             <select name="branch" class="filter-select" onchange="this.form.submit()">
-              <option value=""<%=!filterBranch?' selected':''%>>All Branches</option>
-              <%branches.forEach(function(b){%>
-                <option value="<%=b._id%>"<%=filterBranch===b._id.toString()?' selected':''%>><%=b.name%></option>
-              <%})%>
+              <option value="">All Branches</option>
+              <% branches.forEach(b=>{ %>
+                <option value="<%= b._id %>" <%= filterBranch===b._id.toString()?'selected':'' %>><%= b.name %></option>
+              <% }) %>
             </select>
           </div>
-
-          <a href="/dashboard" class="btn btn-secondary btn-sm" style="margin-left:4px;">
-            <i class="fas fa-undo"></i> Reset
-          </a>
-
-          <div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;">
-            <span style="font-size:11px;color:#8a6050;">
-              <i class="fas fa-circle" style="color:#16a34a;font-size:7px;"></i> Live
-            </span>
-            <% if(filterBranch||filterMonth>0||filterYear!==new Date().getFullYear()){%>
-            <span style="font-size:11px;background:rgba(171,42,10,0.1);color:var(--primary);padding:3px 8px;border-radius:10px;font-weight:600;">
-              Filtered
-            </span>
-            <%}%>
-          </div>
-        </div>
-      </form>
+          <a href="/dashboard" class="btn btn-secondary btn-sm"><i class="fas fa-undo"></i> Reset</a>
+        </form>
+      </div>
 
       <!-- KPI CARDS -->
       <div class="kpi-grid animate-in">
         <div class="kpi-card red">
           <div class="kpi-header">
             <div class="kpi-icon red"><i class="fas fa-coins"></i></div>
-            <div class="kpi-badge <%=kpis.incomeGrowth>=0?'up':'down'%>">
-              <i class="fas fa-arrow-<%=kpis.incomeGrowth>=0?'up':'down'%>"></i>
-              <%=Math.abs(kpis.incomeGrowth)%>%
+            <div class="kpi-badge <%= (kpis.incomeGrowth||0)>=0?'up':'down' %>">
+              <%= (kpis.incomeGrowth||0)>=0?'▲':'▼' %> <%= Math.abs(kpis.incomeGrowth||0) %>%
             </div>
           </div>
-          <div class="kpi-value">GH¢<%=(kpis.totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0})%></div>
+          <div class="kpi-value" style="font-size:20px;">GH¢<%= (kpis.totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}) %></div>
           <div class="kpi-label">Total Income</div>
-          <div class="kpi-trend"><i class="fas fa-history"></i> vs prev: GH¢<%=(kpis.prevIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0})%></div>
+          <div class="kpi-trend"><i class="fas fa-chart-line"></i> vs previous period</div>
         </div>
         <div class="kpi-card blue">
           <div class="kpi-header">
             <div class="kpi-icon blue"><i class="fas fa-users"></i></div>
-            <div class="kpi-badge <%=kpis.attendanceGrowth>=0?'up':'down'%>">
-              <i class="fas fa-arrow-<%=kpis.attendanceGrowth>=0?'up':'down'%>"></i>
-              <%=Math.abs(kpis.attendanceGrowth)%>%
+            <div class="kpi-badge <%= (kpis.attendanceGrowth||0)>=0?'up':'down' %>">
+              <%= (kpis.attendanceGrowth||0)>=0?'▲':'▼' %> <%= Math.abs(kpis.attendanceGrowth||0) %>%
             </div>
           </div>
-          <div class="kpi-value"><%=(kpis.totalAttendance||0).toLocaleString()%></div>
+          <div class="kpi-value"><%= (kpis.totalAttendance||0).toLocaleString() %></div>
           <div class="kpi-label">Total Attendance</div>
-          <div class="kpi-trend"><i class="fas fa-church"></i> <%=kpis.totalBranches%> active branches</div>
+          <div class="kpi-trend"><i class="fas fa-church"></i> <%= kpis.totalBranches %> active branches</div>
         </div>
         <div class="kpi-card green">
           <div class="kpi-header">
             <div class="kpi-icon green"><i class="fas fa-cross"></i></div>
             <div class="kpi-badge up"><i class="fas fa-fire"></i> New</div>
           </div>
-          <div class="kpi-value"><%=kpis.totalSouls||0%></div>
+          <div class="kpi-value"><%= kpis.totalSouls||0 %></div>
           <div class="kpi-label">Souls Added</div>
           <div class="kpi-trend"><i class="fas fa-praying-hands"></i> Kingdom growth</div>
         </div>
         <div class="kpi-card gold">
           <div class="kpi-header">
             <div class="kpi-icon gold"><i class="fas fa-balance-scale"></i></div>
-            <div class="kpi-badge <%=(kpis.netSurplus||0)>=0?'up':'down'%>"><%=(kpis.netSurplus||0)>=0?'Surplus':'Deficit'%></div>
+            <div class="kpi-badge <%= (kpis.netSurplus||0)>=0?'up':'down' %>"><%= (kpis.netSurplus||0)>=0?'Surplus':'Deficit' %></div>
           </div>
-          <div class="kpi-value" style="font-size:20px;">GH¢<%=Math.abs(kpis.netSurplus||0).toLocaleString('en-GH',{maximumFractionDigits:0})%></div>
-          <div class="kpi-label">Net <%=(kpis.netSurplus||0)>=0?'Surplus':'Deficit'%></div>
-          <div class="kpi-trend"><i class="fas fa-minus"></i> Expenses: GH¢<%=(kpis.totalExpenditure||0).toLocaleString('en-GH',{maximumFractionDigits:0})%></div>
+          <div class="kpi-value" style="font-size:20px;">GH¢<%= Math.abs(kpis.netSurplus||0).toLocaleString('en-GH',{maximumFractionDigits:0}) %></div>
+          <div class="kpi-label">Net <%= (kpis.netSurplus||0)>=0?'Surplus':'Deficit' %></div>
+          <div class="kpi-trend"><i class="fas fa-minus"></i> Expenses: GH¢<%= (kpis.totalExpenditure||0).toLocaleString('en-GH',{maximumFractionDigits:0}) %></div>
         </div>
         <div class="kpi-card orange">
           <div class="kpi-header"><div class="kpi-icon orange"><i class="fas fa-map-marker-alt"></i></div><div class="kpi-badge neutral">Active</div></div>
-          <div class="kpi-value"><%=kpis.totalBranches||0%></div>
+          <div class="kpi-value"><%= kpis.totalBranches||0 %></div>
           <div class="kpi-label">Active Branches</div>
           <div class="kpi-trend"><i class="fas fa-globe-africa"></i> Across Ghana</div>
         </div>
         <div class="kpi-card purple">
           <div class="kpi-header"><div class="kpi-icon purple"><i class="fas fa-file-invoice"></i></div><div class="kpi-badge neutral">All Time</div></div>
-          <div class="kpi-value"><%=kpis.totalMonthlyReports||0%></div>
+          <div class="kpi-value"><%= kpis.totalMonthlyReports||0 %></div>
           <div class="kpi-label">Monthly Reports</div>
           <div class="kpi-trend"><i class="fas fa-calendar-check"></i> All submissions</div>
         </div>
         <div class="kpi-card teal">
           <div class="kpi-header"><div class="kpi-icon teal"><i class="fas fa-calendar-week"></i></div><div class="kpi-badge neutral">All Time</div></div>
-          <div class="kpi-value"><%=kpis.totalWeeklyReports||0%></div>
+          <div class="kpi-value"><%= kpis.totalWeeklyReports||0 %></div>
           <div class="kpi-label">Weekly Reports</div>
           <div class="kpi-trend"><i class="fas fa-history"></i> All weekly records</div>
         </div>
         <div class="kpi-card rose">
           <div class="kpi-header"><div class="kpi-icon rose"><i class="fas fa-clock"></i></div>
-            <div class="kpi-badge <%=(kpis.pendingReports||0)>0?'down':'up'%>">
-              <%=(kpis.pendingReports||0)>0?'Pending':'All Clear'%>
+            <div class="kpi-badge <%= (kpis.pendingReports||0)>0?'down':'up' %>">
+              <%= (kpis.pendingReports||0)>0?'Pending':'All Clear' %>
             </div>
           </div>
-          <div class="kpi-value"><%=kpis.pendingReports||0%></div>
+          <div class="kpi-value"><%= kpis.pendingReports||0 %></div>
           <div class="kpi-label">Pending Approvals</div>
           <div class="kpi-trend"><i class="fas fa-tasks"></i> <a href="/reports" style="color:inherit;">Review →</a></div>
         </div>
@@ -147,43 +131,43 @@
       <!-- BEST PERFORMERS -->
       <h3 style="font-size:15px;font-weight:700;color:#1a0a03;margin-bottom:14px;">
         <i class="fas fa-trophy" style="color:var(--gold);margin-right:8px;"></i>
-        Top Performers · <%=filterYear%><%=filterMonth>0?' · '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][filterMonth-1]:''%>
+        Top Performers · <%= filterYear %><%= filterMonth>0?' · '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][filterMonth-1]:'' %>
       </h3>
       <div class="insights-grid animate-in">
         <%
-          var bests = [
-            {label:'Best in Finance',icon:'fas fa-coins',color:'var(--gold)',b:bestBranches.bestFinanceBranch,val:bestBranches.bestFinanceBranch?'GH¢'+(bestBranches.bestFinanceBranch.totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}):'—',metric:'Total income',borderColor:'var(--gold)',crown:'🏆'},
-            {label:'Best Attendance',icon:'fas fa-users',color:'#0284c7',b:bestBranches.bestAttendanceBranch,val:bestBranches.bestAttendanceBranch?(bestBranches.bestAttendanceBranch.totalAttendance||0).toLocaleString():'—',metric:'Members attended',borderColor:'#0284c7',crown:'👥'},
-            {label:'Best Soul Winning',icon:'fas fa-cross',color:'#16a34a',b:bestBranches.bestSoulsBranch,val:bestBranches.bestSoulsBranch?(bestBranches.bestSoulsBranch.totalSouls||0):'—',metric:'Souls added',borderColor:'#16a34a',crown:'✝️'},
-            {label:'Overall Best',icon:'fas fa-fire',color:'var(--primary)',b:bestBranches.overallBest,val:bestBranches.overallBest?Math.round(bestBranches.overallBest.score||0).toLocaleString():'—',metric:'Composite score',borderColor:'var(--primary)',crown:'🔥'},
-            {label:'Needs Attention',icon:'fas fa-exclamation-triangle',color:'#dc2626',b:branchPerformance.length>1?branchPerformance[branchPerformance.length-1]:null,val:branchPerformance.length>1?'GH¢'+(branchPerformance[branchPerformance.length-1].totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}):'—',metric:'Lowest income',borderColor:'#dc2626',crown:'⚠️'},
-            {label:'Most Consistent',icon:'fas fa-clipboard-check',color:'#7c3aed',b:branchPerformance.length>0?[...branchPerformance].sort(function(a,b){return b.reportCount-a.reportCount})[0]:null,val:branchPerformance.length>0?([...branchPerformance].sort(function(a,b){return b.reportCount-a.reportCount})[0].reportCount)+' reports':'—',metric:'Best reporting rate',borderColor:'#7c3aed',crown:'📋'}
-          ];
+        var bests = [
+          {label:'Best in Finance',icon:'fas fa-coins',color:'var(--gold)',b:bestBranches.bestFinanceBranch,val:bestBranches.bestFinanceBranch?'GH¢'+(bestBranches.bestFinanceBranch.totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}):'—',metric:'Total income',borderColor:'var(--gold)',crown:'🏆'},
+          {label:'Best Attendance',icon:'fas fa-users',color:'#0284c7',b:bestBranches.bestAttendanceBranch,val:bestBranches.bestAttendanceBranch?(bestBranches.bestAttendanceBranch.totalAttendance||0).toLocaleString():'—',metric:'Members attended',borderColor:'#0284c7',crown:'👥'},
+          {label:'Best Soul Winning',icon:'fas fa-cross',color:'#16a34a',b:bestBranches.bestSoulsBranch,val:bestBranches.bestSoulsBranch?(bestBranches.bestSoulsBranch.totalSouls||0):'—',metric:'Souls added',borderColor:'#16a34a',crown:'✝'},
+          {label:'Overall Best',icon:'fas fa-fire',color:'var(--primary)',b:bestBranches.overallBest,val:bestBranches.overallBest?Math.round(bestBranches.overallBest.score||0).toLocaleString():'—',metric:'Composite score',borderColor:'var(--primary)',crown:'🔥'},
+          {label:'Needs Attention',icon:'fas fa-exclamation-triangle',color:'#dc2626',b:branchPerformance.length>1?branchPerformance[branchPerformance.length-1]:null,val:branchPerformance.length>1?'GH¢'+(branchPerformance[branchPerformance.length-1].totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}):'—',metric:'Lowest income',borderColor:'#dc2626',crown:'⚠'},
+          {label:'Most Consistent',icon:'fas fa-clipboard-check',color:'#7c3aed',b:branchPerformance.length>0?[...branchPerformance].sort(function(a,b){return b.reportCount-a.reportCount})[0]:null,val:branchPerformance.length>0?([...branchPerformance].sort(function(a,b){return b.reportCount-a.reportCount})[0].reportCount)+' reports':'—',metric:'Best reporting rate',borderColor:'#7c3aed',crown:'📋'}
+        ];
         %>
-        <%bests.forEach(function(item){%>
-        <div class="insight-card" style="border-top:4px solid <%=item.borderColor%>;">
-          <span class="crown"><%=item.crown%></span>
-          <div class="insight-type" style="color:<%=item.color%>;"><i class="<%=item.icon%>"></i> <%=item.label%></div>
-          <%if(item.b){%>
-            <div class="insight-branch-name"><%=item.b.branchName%></div>
-            <div class="insight-value" style="background:none;-webkit-text-fill-color:<%=item.color%>;color:<%=item.color%>;font-size:20px;font-weight:800;"><%=item.val%></div>
-            <div class="insight-metric"><%=item.metric%></div>
-          <%}else{%>
+        <% bests.forEach(function(item){ %>
+        <div class="insight-card" style="border-top:4px solid <%= item.borderColor %>;">
+          <span class="crown"><%= item.crown %></span>
+          <div class="insight-type" style="color:<%= item.color %>;"><i class="<%= item.icon %>"></i> <%= item.label %></div>
+          <% if(item.b){ %>
+            <div class="insight-branch-name"><%= item.b.branchName %></div>
+            <div class="insight-value" style="background:none;-webkit-text-fill-color:<%= item.color %>;color:<%= item.color %>;font-size:20px;font-weight:800;"><%= item.val %></div>
+            <div class="insight-metric"><%= item.metric %></div>
+          <% }else{ %>
             <div style="color:#8a6050;font-size:14px;margin-top:8px;">No data yet</div>
-          <%}%>
+          <% } %>
         </div>
-        <%})%>
+        <% }) %>
       </div>
 
-      <!-- CHARTS ROW 1: Income Trend + Attendance Donut -->
+      <!-- CHARTS ROW 1 -->
       <div class="charts-grid animate-in" style="grid-template-columns:2fr 1fr;">
         <div class="chart-card">
           <div class="chart-header">
             <div>
               <div class="chart-title"><i class="fas fa-chart-line" style="color:var(--primary);margin-right:6px;"></i>Income & Attendance Trend</div>
-              <div class="chart-subtitle">Monthly performance · <%=filterYear%></div>
+              <div class="chart-subtitle">Monthly performance · <%= filterYear %></div>
             </div>
-            <span class="chart-badge"><i class="fas fa-calendar"></i> <%=filterYear%></span>
+            <span class="chart-badge"><i class="fas fa-calendar"></i> <%= filterYear %></span>
           </div>
           <div class="chart-container tall"><canvas id="trendChart"></canvas></div>
         </div>
@@ -196,20 +180,20 @@
           </div>
           <div class="chart-container" style="height:200px;"><canvas id="attendanceDonut"></canvas></div>
           <div style="margin-top:12px;">
-            <%var ab=attendanceBreakdown;var aTotal=(ab.male||0)+(ab.female||0)+(ab.children||0)+(ab.visitors||0);%>
-            <%[['Male','#0284c7',ab.male||0],['Female','#e11d48',ab.female||0],['Children','#16a34a',ab.children||0],['Visitors','#d97706',ab.visitors||0]].forEach(function(row){%>
+            <% var ab=attendanceBreakdown; var aTotal=(ab.male||0)+(ab.female||0)+(ab.children||0)+(ab.visitors||0); %>
+            <% [['Male','#0284c7',ab.male||0],['Female','#e11d48',ab.female||0],['Children','#16a34a',ab.children||0],['Visitors','#d97706',ab.visitors||0]].forEach(function(row){ %>
             <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;">
               <span style="display:flex;align-items:center;gap:6px;">
-                <span style="width:9px;height:9px;border-radius:2px;background:<%=row[1]%>;display:inline-block;flex-shrink:0;"></span><%=row[0]%>
+                <span style="width:9px;height:9px;border-radius:2px;background:<%= row[1] %>;display:inline-block;flex-shrink:0;"></span><%= row[0] %>
               </span>
-              <span style="font-weight:700;"><%=row[2].toLocaleString()%> (<%=aTotal>0?((row[2]/aTotal)*100).toFixed(1):0%>%)</span>
+              <span style="font-weight:700;"><%= row[2].toLocaleString() %> (<%= aTotal>0?((row[2]/aTotal)*100).toFixed(1):0 %>%)</span>
             </div>
-            <%})%>
+            <% }) %>
           </div>
         </div>
       </div>
 
-      <!-- CHARTS ROW 2: Income Sources + Branch Bar -->
+      <!-- CHARTS ROW 2 -->
       <div class="charts-grid animate-in">
         <div class="chart-card">
           <div class="chart-header">
@@ -217,27 +201,26 @@
               <div class="chart-title"><i class="fas fa-chart-pie" style="color:var(--fire-orange);margin-right:6px;"></i>Income Sources</div>
               <div class="chart-subtitle">Where the money comes from</div>
             </div>
-            <span class="chart-badge">GH¢<%=(kpis.totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0})%></span>
+            <span class="chart-badge">GH¢<%= (kpis.totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}) %></span>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;">
             <div class="chart-container short"><canvas id="incomeDonut"></canvas></div>
             <div>
-              <%var incB=incomeBreakdown;
+              <% var incB=incomeBreakdown;
               var srcList=[['Tithes','#ab2a0a',incB.tithes||0],['Offerings','#FF6600',incB.offerings||0],['Mbr Dues','#FFCC00',incB.membershipDues||0],['Project','#D4AF37',incB.projectOffering||0],['Children','#16a34a',incB.childrenService||0],['Seeds','#0284c7',incB.seeds||0],['Pledges','#7c3aed',incB.pledges||0],['Revival','#e11d48',incB.revivalPrograms||0],['Bank','#0d9488',incB.bank||0],['Other','#6b7280',incB.otherFunds||0]];
-              var incTotal=srcList.reduce(function(s,i){return s+i[2]},0);%>
-              <%srcList.filter(function(s){return s[2]>0}).slice(0,6).forEach(function(row){%>
+              var incTotal=srcList.reduce(function(s,i){return s+i[2]},0); %>
+              <% srcList.filter(function(s){return s[2]>0}).slice(0,6).forEach(function(row){ %>
               <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:11px;">
                 <span style="display:flex;align-items:center;gap:5px;overflow:hidden;">
-                  <span style="width:7px;height:7px;border-radius:2px;background:<%=row[1]%>;flex-shrink:0;"></span>
-                  <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%=row[0]%></span>
+                  <span style="width:7px;height:7px;border-radius:2px;background:<%= row[1] %>;flex-shrink:0;"></span>
+                  <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= row[0] %></span>
                 </span>
-                <span style="font-weight:700;font-size:11px;flex-shrink:0;margin-left:6px;"><%=incTotal>0?((row[2]/incTotal)*100).toFixed(0):0%>%</span>
+                <span style="font-weight:700;font-size:11px;flex-shrink:0;margin-left:6px;"><%= incTotal>0?((row[2]/incTotal)*100).toFixed(0):0 %>%</span>
               </div>
-              <%})%>
+              <% }) %>
             </div>
           </div>
         </div>
-
         <div class="chart-card">
           <div class="chart-header">
             <div>
@@ -249,13 +232,13 @@
         </div>
       </div>
 
-      <!-- CHARTS ROW 3: Weekly + Souls -->
+      <!-- CHARTS ROW 3 -->
       <div class="charts-grid animate-in">
         <div class="chart-card">
           <div class="chart-header">
             <div>
               <div class="chart-title"><i class="fas fa-chart-area" style="color:#16a34a;margin-right:6px;"></i>Weekly Financial Trend</div>
-              <div class="chart-subtitle">Week-by-week income · <%=filterYear%></div>
+              <div class="chart-subtitle">Week-by-week income · <%= filterYear %></div>
             </div>
           </div>
           <div class="chart-container"><canvas id="weeklyChart"></canvas></div>
@@ -275,14 +258,13 @@
       <div class="performance-table-container animate-in">
         <div class="chart-header" style="margin-bottom:16px;">
           <div>
-            <div class="chart-title"><i class="fas fa-ranking-star" style="color:var(--gold);margin-right:8px;"></i>Branch Performance Rankings · <%=filterYear%></div>
+            <div class="chart-title"><i class="fas fa-ranking-star" style="color:var(--gold);margin-right:8px;"></i>Branch Performance Rankings · <%= filterYear %></div>
             <div class="chart-subtitle">Comprehensive branch breakdown</div>
           </div>
           <a href="/reports" class="btn btn-secondary btn-sm"><i class="fas fa-table"></i> Full Data</a>
         </div>
-
-        <%if(branchPerformance&&branchPerformance.length>0){%>
-        <%var maxIncome=Math.max.apply(null,branchPerformance.map(function(b){return b.totalIncome}),1);%>
+        <% if(branchPerformance&&branchPerformance.length>0){ %>
+        <% var maxIncome=Math.max.apply(null,branchPerformance.map(function(b){return b.totalIncome}),1); %>
         <table class="perf-table">
           <thead>
             <tr>
@@ -291,36 +273,36 @@
             </tr>
           </thead>
           <tbody>
-            <%branchPerformance.forEach(function(b,i){
-              var surplus=b.totalIncome-b.totalExpenditure;
-              var pct=maxIncome>0?(b.totalIncome/maxIncome)*100:0;
+            <% branchPerformance.forEach(function(b,i){
+               var surplus=b.totalIncome-b.totalExpenditure;
+               var pct=maxIncome>0?(b.totalIncome/maxIncome)*100:0;
             %>
             <tr>
-              <td><span class="rank-badge <%=i===0?'gold':i===1?'silver':i===2?'bronze':'normal'%>"><%=i+1%></span></td>
-              <td><strong style="font-size:13px;"><%=b.branchName%></strong></td>
-              <td><strong style="color:#16a34a;">GH¢<%=(b.totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0})%></strong></td>
-              <td style="color:#dc2626;font-size:12px;">GH¢<%=(b.totalExpenditure||0).toLocaleString('en-GH',{maximumFractionDigits:0})%></td>
-              <td><span style="font-weight:700;color:<%=surplus>=0?'#16a34a':'#dc2626'%>;"><%=surplus>=0?'+':'-'%>GH¢<%=Math.abs(surplus).toLocaleString('en-GH',{maximumFractionDigits:0})%></span></td>
-              <td><%=(b.totalAttendance||0).toLocaleString()%></td>
-              <td><span style="background:rgba(124,58,237,0.1);color:#7c3aed;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;"><%=b.totalSouls||0%></span></td>
-              <td style="font-weight:600;"><%=b.reportCount||0%></td>
+              <td><span class="rank-badge <%= i===0?'gold':i===1?'silver':i===2?'bronze':'normal' %>"><%= i+1 %></span></td>
+              <td><strong style="font-size:13px;"><%= b.branchName %></strong></td>
+              <td><strong style="color:#16a34a;">GH¢<%= (b.totalIncome||0).toLocaleString('en-GH',{maximumFractionDigits:0}) %></strong></td>
+              <td style="color:#dc2626;font-size:12px;">GH¢<%= (b.totalExpenditure||0).toLocaleString('en-GH',{maximumFractionDigits:0}) %></td>
+              <td><span style="font-weight:700;color:<%= surplus>=0?'#16a34a':'#dc2626' %>;"><%= surplus>=0?'+':'-' %>GH¢<%= Math.abs(surplus).toLocaleString('en-GH',{maximumFractionDigits:0}) %></span></td>
+              <td><%= (b.totalAttendance||0).toLocaleString() %></td>
+              <td><span style="background:rgba(124,58,237,0.1);color:#7c3aed;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;"><%= b.totalSouls||0 %></span></td>
+              <td style="font-weight:600;"><%= b.reportCount||0 %></td>
               <td>
                 <div class="progress-bar-container">
-                  <div class="progress-bar"><div class="progress-fill" style="width:<%=pct.toFixed(0)%>%;"></div></div>
-                  <span style="font-size:11px;color:#8a6050;width:32px;text-align:right;flex-shrink:0;"><%=pct.toFixed(0)%>%</span>
+                  <div class="progress-bar"><div class="progress-fill" style="width:<%= pct.toFixed(0) %>%;"></div></div>
+                  <span style="font-size:11px;color:#8a6050;width:32px;text-align:right;flex-shrink:0;"><%= pct.toFixed(0) %>%</span>
                 </div>
               </td>
             </tr>
-            <%})%>
+            <% }) %>
           </tbody>
         </table>
-        <%}else{%>
+        <% }else{ %>
         <div style="text-align:center;padding:50px;color:#8a6050;">
           <i class="fas fa-chart-bar" style="font-size:42px;opacity:0.25;display:block;margin-bottom:14px;"></i>
           <p style="font-size:15px;">No report data for selected filters</p>
           <a href="/forms" class="btn btn-primary" style="margin-top:14px;"><i class="fas fa-plus"></i> Submit Report</a>
         </div>
-        <%}%>
+        <% } %>
       </div>
 
     </div>
@@ -328,37 +310,40 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="/js/main.js"></script>
 <script>
-// Global chart defaults
+// Register datalabels plugin globally
+Chart.register(ChartDataLabels);
+
+// Global defaults
 Chart.defaults.font.family = "'Inter','Segoe UI',sans-serif";
-Chart.defaults.font.size = 11;
-Chart.defaults.color = '#4a2a10';
+Chart.defaults.font.size   = 11;
+Chart.defaults.color       = '#4a2a10';
 Chart.defaults.plugins.legend.labels.usePointStyle = true;
 Chart.defaults.plugins.legend.labels.padding = 14;
 Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(26,10,3,0.92)';
-Chart.defaults.plugins.tooltip.titleColor = '#FFCC00';
-Chart.defaults.plugins.tooltip.bodyColor = 'rgba(255,230,200,0.9)';
-Chart.defaults.plugins.tooltip.padding = 10;
+Chart.defaults.plugins.tooltip.titleColor  = '#FFCC00';
+Chart.defaults.plugins.tooltip.bodyColor   = 'rgba(255,230,200,0.9)';
+Chart.defaults.plugins.tooltip.padding     = 10;
 Chart.defaults.plugins.tooltip.cornerRadius = 8;
+// Disable datalabels by default — enable per chart
+Chart.defaults.plugins.datalabels.display = false;
 
 const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-// ---- Data from server ----
 const monthlyTrends  = <%- JSON.stringify(monthlyTrends) %>;
 const weeklyTrends   = <%- JSON.stringify(weeklyTrends) %>;
 const branchPerf     = <%- JSON.stringify(branchPerformance) %>;
 const incBreakdown   = <%- JSON.stringify(incomeBreakdown) %>;
 const attBreakdown   = <%- JSON.stringify(attendanceBreakdown) %>;
 
-// ---- CHART 1: Income & Attendance Trend ----
+// ── CHART 1: Income & Attendance Trend (LINE) ──────────────
 (function(){
-  var ctx = document.getElementById('trendChart');
-  if(!ctx) return;
-  var labels = monthlyTrends.map(function(t){ return monthNames[t._id.month-1]+' '+t._id.year; });
-  var income = monthlyTrends.map(function(t){ return t.totalIncome||0; });
-  var attendance = monthlyTrends.map(function(t){ return t.totalAttendance||0; });
-
+  var ctx = document.getElementById('trendChart'); if(!ctx) return;
+  var labels     = monthlyTrends.map(t => monthNames[t._id.month-1]+' '+t._id.year);
+  var income     = monthlyTrends.map(t => t.totalIncome||0);
+  var attendance = monthlyTrends.map(t => t.totalAttendance||0);
   new Chart(ctx, {
     type: 'line',
     data: {
@@ -367,192 +352,197 @@ const attBreakdown   = <%- JSON.stringify(attendanceBreakdown) %>;
         {
           label: 'Income (GH¢)',
           data: income.length ? income : [0],
-          borderColor: '#ab2a0a', backgroundColor: 'rgba(171,42,10,0.07)',
-          borderWidth: 2.5, pointBackgroundColor: '#ab2a0a', pointRadius: 4, pointHoverRadius: 7,
-          fill: true, tension: 0.4, yAxisID: 'y'
+          borderColor:'#ab2a0a', backgroundColor:'rgba(171,42,10,0.07)',
+          borderWidth:2.5, pointBackgroundColor:'#ab2a0a', pointRadius:5, pointHoverRadius:8,
+          fill:true, tension:0.4, yAxisID:'y',
+          datalabels: {
+            display: true,
+            align: 'top',
+            color: '#ab2a0a',
+            font: { weight:'bold', size:9 },
+            formatter: v => v>0 ? 'GH¢'+(v>=1000?(v/1000).toFixed(1)+'K':v.toFixed(0)) : ''
+          }
         },
         {
           label: 'Attendance',
           data: attendance.length ? attendance : [0],
-          borderColor: '#0284c7', backgroundColor: 'rgba(2,132,199,0.05)',
-          borderWidth: 2.5, pointBackgroundColor: '#0284c7', pointRadius: 4, pointHoverRadius: 7,
-          fill: true, tension: 0.4, yAxisID: 'y1'
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { position: 'top' },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              return ctx.datasetIndex===0
-                ? ' Income: GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0})
-                : ' Attendance: '+ctx.raw.toLocaleString();
-            }
-          }
-        },
-        datalabels: false
-      },
-      scales: {
-        y: { type:'linear', position:'left', grid:{color:'rgba(0,0,0,0.04)'}, ticks:{ callback:function(v){ return 'GH¢'+v.toLocaleString('en-GH',{maximumFractionDigits:0}); } } },
-        y1: { type:'linear', position:'right', grid:{drawOnChartArea:false} },
-        x: { grid:{display:false} }
-      }
-    }
-  });
-})();
-
-// ---- CHART 2: Attendance Donut ----
-(function(){
-  var ctx = document.getElementById('attendanceDonut');
-  if(!ctx) return;
-  var data = [attBreakdown.male||0, attBreakdown.female||0, attBreakdown.children||0, attBreakdown.visitors||0];
-  var total = data.reduce(function(a,b){return a+b},0);
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Male','Female','Children','Visitors'],
-      datasets: [{ data: data, backgroundColor:['#0284c7','#e11d48','#16a34a','#d97706'], borderColor:'white', borderWidth:3, hoverOffset:6 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '72%',
-      plugins: {
-        legend: { position:'bottom', labels:{ padding:10, font:{size:10} } },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              var pct = total>0?((ctx.raw/total)*100).toFixed(1):0;
-              return ' '+ctx.label+': '+ctx.raw.toLocaleString()+' ('+pct+'%)';
-            }
+          borderColor:'#0284c7', backgroundColor:'rgba(2,132,199,0.05)',
+          borderWidth:2.5, pointBackgroundColor:'#0284c7', pointRadius:5, pointHoverRadius:8,
+          fill:true, tension:0.4, yAxisID:'y1',
+          datalabels: {
+            display: true,
+            align: 'bottom',
+            color: '#0284c7',
+            font: { weight:'bold', size:9 },
+            formatter: v => v>0 ? v.toLocaleString() : ''
           }
         }
-      }
-    }
-  });
-})();
-
-// ---- CHART 3: Income Sources Donut ----
-(function(){
-  var ctx = document.getElementById('incomeDonut');
-  if(!ctx) return;
-  var labels = ['Tithes','Offerings','Mbr Dues','Project','Children','Seeds','Pledges','Revival','Bank','Other'];
-  var data = [incBreakdown.tithes||0,incBreakdown.offerings||0,incBreakdown.membershipDues||0,
-    incBreakdown.projectOffering||0,incBreakdown.childrenService||0,incBreakdown.seeds||0,
-    incBreakdown.pledges||0,incBreakdown.revivalPrograms||0,incBreakdown.bank||0,incBreakdown.otherFunds||0];
-  var colors = ['#ab2a0a','#FF6600','#FFCC00','#D4AF37','#16a34a','#0284c7','#7c3aed','#e11d48','#0d9488','#6b7280'];
-
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: { labels:labels, datasets:[{ data:data, backgroundColor:colors, borderColor:'white', borderWidth:2, hoverOffset:5 }] },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '68%',
-      plugins: {
-        legend: { display:false },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              return ' '+ctx.label+': GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0});
-            }
-          }
-        }
-      }
-    }
-  });
-})();
-
-// ---- CHART 4: Branch Bar ----
-(function(){
-  var ctx = document.getElementById('branchBar');
-  if(!ctx) return;
-  var labels = branchPerf.map(function(b){ return b.branchName.replace(' Branch',''); });
-  var income = branchPerf.map(function(b){ return b.totalIncome||0; });
-  var expend = branchPerf.map(function(b){ return b.totalExpenditure||0; });
-
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels.length ? labels : ['No Data'],
-      datasets: [
-        { label:'Income (GH¢)', data: income.length?income:[0], backgroundColor:'rgba(171,42,10,0.85)', borderRadius:5, borderSkipped:false },
-        { label:'Expenditure (GH¢)', data: expend.length?expend:[0], backgroundColor:'rgba(255,102,0,0.55)', borderRadius:5, borderSkipped:false }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position:'top' },
-        tooltip: {
-          callbacks: {
-            label: function(ctx){ return ' '+ctx.dataset.label+': GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0}); }
-          }
-        }
-      },
-      scales: {
-        x: { grid:{display:false}, ticks:{ font:{size:10}, maxRotation:45 } },
-        y: { grid:{color:'rgba(0,0,0,0.04)'}, ticks:{ callback:function(v){ return 'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v); } } }
-      }
-    }
-  });
-})();
-
-// ---- CHART 5: Weekly Line ----
-(function(){
-  var ctx = document.getElementById('weeklyChart');
-  if(!ctx) return;
-  var labels = weeklyTrends.map(function(w){ return 'Wk '+w._id.week; });
-  var income = weeklyTrends.map(function(w){ return w.totalIncome||0; });
-  var attend = weeklyTrends.map(function(w){ return w.totalAttendance||0; });
-
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels.length?labels:['No Data'],
-      datasets: [
-        { label:'Weekly Income (GH¢)', data:income.length?income:[0], borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.08)', borderWidth:2.5, pointRadius:3, fill:true, tension:0.4, yAxisID:'y' },
-        { label:'Attendance', data:attend.length?attend:[0], borderColor:'#d97706', backgroundColor:'rgba(217,119,6,0.05)', borderWidth:2.5, pointRadius:3, fill:true, tension:0.4, yAxisID:'y1' }
       ]
     },
     options: {
       responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{ legend:{position:'top'},
-        tooltip:{ callbacks:{ label:function(ctx){ return ctx.datasetIndex===0?' GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0}):'  Att: '+ctx.raw.toLocaleString(); } } }
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ position:'top' },
+        tooltip:{ callbacks:{ label: ctx => ctx.datasetIndex===0?' Income: GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0}):'  Attendance: '+ctx.raw.toLocaleString() } },
+        datalabels:{}
       },
       scales:{
-        y:{type:'linear',position:'left',grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return 'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v);}}},
-        y1:{type:'linear',position:'right',grid:{drawOnChartArea:false}},
-        x:{grid:{display:false}}
+        y:{ type:'linear', position:'left', grid:{color:'rgba(0,0,0,0.04)'}, ticks:{ callback: v => 'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v) } },
+        y1:{ type:'linear', position:'right', grid:{drawOnChartArea:false} },
+        x:{ grid:{display:false} }
       }
     }
   });
 })();
 
-// ---- CHART 6: Souls Bar ----
+// ── CHART 2: Attendance Donut ──────────────────────────────
 (function(){
-  var ctx = document.getElementById('soulsChart');
-  if(!ctx) return;
-  var labels = monthlyTrends.map(function(t){ return monthNames[t._id.month-1]; });
-  var data = monthlyTrends.map(function(t){ return t.totalSouls||0; });
-  var colors = ['#7c3aed','#8b5cf6','#9d70fa','#a78bfa','#6d28d9','#7c3aed','#8b5cf6','#9d70fa','#7c3aed','#8b5cf6','#6d28d9','#7c3aed'];
-
+  var ctx = document.getElementById('attendanceDonut'); if(!ctx) return;
+  var data  = [attBreakdown.male||0, attBreakdown.female||0, attBreakdown.children||0, attBreakdown.visitors||0];
+  var total = data.reduce((a,b)=>a+b,0);
   new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels.length?labels:['No Data'],
-      datasets:[{ label:'Souls Added', data:data.length?data:[0], backgroundColor:data.map(function(_,i){return colors[i%colors.length];}), borderRadius:7, borderSkipped:false }]
+    type:'doughnut',
+    data:{
+      labels:['Male','Female','Children','Visitors'],
+      datasets:[{ data, backgroundColor:['#0284c7','#e11d48','#16a34a','#d97706'], borderColor:'white', borderWidth:3, hoverOffset:6 }]
     },
-    options: {
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'72%',
+      plugins:{
+        legend:{ position:'bottom', labels:{ padding:10, font:{size:10} } },
+        tooltip:{ callbacks:{ label: ctx => { var pct=total>0?((ctx.raw/total)*100).toFixed(1):0; return ' '+ctx.label+': '+ctx.raw.toLocaleString()+' ('+pct+'%)'; } } },
+        datalabels:{
+          display: true,
+          color: '#fff',
+          font: { weight:'bold', size:10 },
+          formatter: (v,ctx) => { var pct=total>0?((v/total)*100).toFixed(0):0; return pct>5?pct+'%':''; }
+        }
+      }
+    }
+  });
+})();
+
+// ── CHART 3: Income Sources Donut ──────────────────────────
+(function(){
+  var ctx = document.getElementById('incomeDonut'); if(!ctx) return;
+  var labels = ['Tithes','Offerings','Mbr Dues','Project','Children','Seeds','Pledges','Revival','Bank','Other'];
+  var data   = [incBreakdown.tithes||0,incBreakdown.offerings||0,incBreakdown.membershipDues||0,
+                incBreakdown.projectOffering||0,incBreakdown.childrenService||0,incBreakdown.seeds||0,
+                incBreakdown.pledges||0,incBreakdown.revivalPrograms||0,incBreakdown.bank||0,incBreakdown.otherFunds||0];
+  var colors = ['#ab2a0a','#FF6600','#FFCC00','#D4AF37','#16a34a','#0284c7','#7c3aed','#e11d48','#0d9488','#6b7280'];
+  var total  = data.reduce((a,b)=>a+b,0);
+  new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:colors, borderColor:'white', borderWidth:2, hoverOffset:5 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'68%',
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label: ctx => ' '+ctx.label+': GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0}) } },
+        datalabels:{
+          display: ctx => ctx.dataset.data[ctx.dataIndex] > 0 && total > 0 && ((ctx.dataset.data[ctx.dataIndex]/total)*100) > 4,
+          color:'#fff',
+          font:{ weight:'bold', size:9 },
+          formatter:(v) => total>0?((v/total)*100).toFixed(0)+'%':''
+        }
+      }
+    }
+  });
+})();
+
+// ── CHART 4: Branch Bar ────────────────────────────────────
+(function(){
+  var ctx = document.getElementById('branchBar'); if(!ctx) return;
+  var labels = branchPerf.map(b => b.branchName.replace(' Branch',''));
+  var income = branchPerf.map(b => b.totalIncome||0);
+  var expend = branchPerf.map(b => b.totalExpenditure||0);
+  new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: labels.length ? labels : ['No Data'],
+      datasets:[
+        { label:'Income (GH¢)',      data:income.length?income:[0], backgroundColor:'rgba(171,42,10,0.85)', borderRadius:5, borderSkipped:false,
+          datalabels:{ display:true, anchor:'end', align:'end', color:'#ab2a0a', font:{weight:'bold',size:8}, formatter: v => v>0?'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v):'' } },
+        { label:'Expenditure (GH¢)', data:expend.length?expend:[0], backgroundColor:'rgba(255,102,0,0.55)', borderRadius:5, borderSkipped:false,
+          datalabels:{ display:true, anchor:'end', align:'end', color:'#FF6600', font:{weight:'bold',size:8}, formatter: v => v>0?'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v):'' } }
+      ]
+    },
+    options:{
       responsive:true, maintainAspectRatio:false,
       plugins:{
-        legend:{display:false},
-        tooltip:{ callbacks:{ label:function(ctx){ return ' Souls: '+ctx.raw; } } }
+        legend:{ position:'top' },
+        tooltip:{ callbacks:{ label: ctx => ' '+ctx.dataset.label+': GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0}) } },
+        datalabels:{}
       },
       scales:{
-        x:{grid:{display:false}},
-        y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{stepSize:1,precision:0}}
+        x:{ grid:{display:false}, ticks:{ font:{size:10}, maxRotation:45 } },
+        y:{ grid:{color:'rgba(0,0,0,0.04)'}, ticks:{ callback: v => 'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v) } }
+      }
+    }
+  });
+})();
+
+// ── CHART 5: Weekly Line ───────────────────────────────────
+(function(){
+  var ctx = document.getElementById('weeklyChart'); if(!ctx) return;
+  var labels = weeklyTrends.map(w => 'Wk '+w._id.week);
+  var income = weeklyTrends.map(w => w.totalIncome||0);
+  var attend = weeklyTrends.map(w => w.totalAttendance||0);
+  new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: labels.length?labels:['No Data'],
+      datasets:[
+        { label:'Weekly Income (GH¢)', data:income.length?income:[0], borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.08)', borderWidth:2.5, pointRadius:3, fill:true, tension:0.4, yAxisID:'y',
+          datalabels:{ display:true, align:'top', color:'#16a34a', font:{weight:'bold',size:8}, formatter:v=>v>0?'GH¢'+(v>=1000?(v/1000).toFixed(1)+'K':v):'' } },
+        { label:'Attendance', data:attend.length?attend:[0], borderColor:'#d97706', backgroundColor:'rgba(217,119,6,0.05)', borderWidth:2.5, pointRadius:3, fill:true, tension:0.4, yAxisID:'y1',
+          datalabels:{ display:false } }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ position:'top' },
+        tooltip:{ callbacks:{ label: ctx => ctx.datasetIndex===0?' GH¢'+ctx.raw.toLocaleString('en-GH',{maximumFractionDigits:0}):' Att: '+ctx.raw.toLocaleString() } },
+        datalabels:{}
+      },
+      scales:{
+        y:{ type:'linear', position:'left', grid:{color:'rgba(0,0,0,0.04)'}, ticks:{callback:v=>'GH¢'+(v>=1000?(v/1000).toFixed(0)+'K':v)} },
+        y1:{ type:'linear', position:'right', grid:{drawOnChartArea:false} },
+        x:{ grid:{display:false} }
+      }
+    }
+  });
+})();
+
+// ── CHART 6: Souls Bar ────────────────────────────────────
+(function(){
+  var ctx = document.getElementById('soulsChart'); if(!ctx) return;
+  var labels = monthlyTrends.map(t => monthNames[t._id.month-1]);
+  var data   = monthlyTrends.map(t => t.totalSouls||0);
+  var colors = ['#7c3aed','#8b5cf6','#9d70fa','#a78bfa','#6d28d9','#7c3aed','#8b5cf6','#9d70fa','#7c3aed','#8b5cf6','#6d28d9','#7c3aed'];
+  new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: labels.length?labels:['No Data'],
+      datasets:[{ label:'Souls Added', data:data.length?data:[0],
+        backgroundColor:data.map((_,i)=>colors[i%colors.length]),
+        borderRadius:7, borderSkipped:false,
+        datalabels:{ display:true, anchor:'end', align:'end', color:'#7c3aed', font:{weight:'bold',size:10}, formatter:v=>v>0?v:'' }
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label: ctx => ' Souls: '+ctx.raw } },
+        datalabels:{}
+      },
+      scales:{
+        x:{ grid:{display:false} },
+        y:{ grid:{color:'rgba(0,0,0,0.04)'}, ticks:{stepSize:1,precision:0} }
       }
     }
   });

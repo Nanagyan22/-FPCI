@@ -7,27 +7,94 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
+  <style>
+    .export-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .export-bar .export-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #8a6050;
+    }
+    .btn-excel {
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-excel:hover { background: #15803d; color:#fff; }
+    .btn-pdf {
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-pdf:hover { background: #b91c1c; color:#fff; }
+    .table-scroll-wrap {
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: 65vh;
+      border-radius: 8px;
+      border: 1px solid #f0e0d6;
+      position: relative;
+    }
+    .table-scroll-wrap::-webkit-scrollbar { height: 8px; width: 8px; }
+    .table-scroll-wrap::-webkit-scrollbar-track { background: #f5ede8; border-radius: 4px; }
+    .table-scroll-wrap::-webkit-scrollbar-thumb { background: #ab2a0a; border-radius: 4px; }
+    .table-scroll-wrap table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #ab2a0a;
+      color: #fff;
+    }
+  </style>
 </head>
 <body>
 <div class="app-wrapper">
   <%- include('../partials/sidebar', { currentPage: 'reports', user: user }) %>
   <div class="main-content">
-    <%- include('../partials/topbar', { pageTitle: 'Raw Data Reports', pageSubtitle: 'View & manage all submitted reports' }) %>
+    <%- include('../partials/topbar', { pageTitle: 'Raw Data Reports', pageSubtitle: 'View, filter & export all submitted reports' }) %>
     <div class="content-wrapper">
 
       <% if (success_msg && success_msg.length > 0) { %>
         <div class="alert alert-success"><i class="fas fa-check-circle"></i> <%= success_msg %></div>
       <% } %>
+      <% if (error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> <%= error_msg %></div>
+      <% } %>
 
       <!-- FILTERS -->
       <div class="filters-bar animate-in">
         <i class="fas fa-filter" style="color:var(--primary);"></i>
-        <form method="GET" action="/reports" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;flex:1;">
+        <form method="GET" action="/reports" id="filterForm" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;flex:1;">
           <div class="filter-group">
             <label class="filter-label">Type</label>
             <select name="type" class="filter-select" onchange="this.form.submit()">
               <option value="monthly" <%= type === 'monthly' ? 'selected' : '' %>>Monthly</option>
-              <option value="weekly" <%= type === 'weekly' ? 'selected' : '' %>>Weekly</option>
+              <option value="weekly"  <%= type === 'weekly'  ? 'selected' : '' %>>Weekly</option>
             </select>
           </div>
           <div class="filter-group">
@@ -63,21 +130,32 @@
             <label class="filter-label">Status</label>
             <select name="status" class="filter-select" onchange="this.form.submit()">
               <option value="">All Status</option>
-              <option value="pending" <%= filters.status === 'pending' ? 'selected' : '' %>>Pending</option>
+              <option value="pending"  <%= filters.status === 'pending'  ? 'selected' : '' %>>Pending</option>
               <option value="approved" <%= filters.status === 'approved' ? 'selected' : '' %>>Approved</option>
               <option value="rejected" <%= filters.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
             </select>
           </div>
-          <a href="/reports?type=<%= type %>" class="btn btn-secondary btn-sm">
-            <i class="fas fa-undo"></i> Reset
-          </a>
+          <a href="/reports?type=<%= type %>" class="btn btn-secondary btn-sm"><i class="fas fa-undo"></i> Reset</a>
           <div style="margin-left:auto;">
             <span style="font-size:13px;color:#8a6050;font-weight:600;">
-              <i class="fas fa-list"></i>
-              <%= pagination.totalRecords %> record<%= pagination.totalRecords !== 1 ? 's' : '' %> found
+              <i class="fas fa-list"></i> <%= pagination.totalRecords %> record<%= pagination.totalRecords !== 1 ? 's' : '' %> found
             </span>
           </div>
         </form>
+      </div>
+
+      <!-- EXPORT BAR -->
+      <div class="export-bar animate-in">
+        <span class="export-label"><i class="fas fa-download"></i> Export current view:</span>
+        <a href="/reports/export/excel?type=<%= type %>&branch=<%= filters.branch %>&year=<%= filters.year %>&month=<%= filters.month %>&status=<%= filters.status %>"
+           class="btn-excel">
+          <i class="fas fa-file-excel"></i> Download Excel
+        </a>
+        <a href="/reports/export/pdf?type=<%= type %>&branch=<%= filters.branch %>&year=<%= filters.year %>&month=<%= filters.month %>&status=<%= filters.status %>"
+           class="btn-pdf">
+          <i class="fas fa-file-pdf"></i> Download PDF
+        </a>
+        <span style="font-size:11px;color:#aaa;">(exports all matching records, not just current page)</span>
       </div>
 
       <!-- DATA TABLE -->
@@ -87,153 +165,151 @@
             <i class="fas fa-table" style="color:var(--primary);"></i>
             <%= type === 'monthly' ? 'Monthly' : 'Weekly' %> Reports
           </h3>
-          <a href="/forms" class="btn btn-primary btn-sm">
-            <i class="fas fa-plus"></i> Add New Report
-          </a>
+          <a href="/forms" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add New Report</a>
         </div>
 
         <% if (reports.length === 0) { %>
-        <div style="text-align:center;padding:60px;color:#8a6050;">
-          <i class="fas fa-inbox" style="font-size:48px;opacity:0.3;"></i>
-          <p style="margin-top:16px;font-size:16px;">No reports found</p>
-          <p style="font-size:13px;">Try adjusting your filters or submit a new report</p>
-        </div>
+          <div style="text-align:center;padding:60px;color:#8a6050;">
+            <i class="fas fa-inbox" style="font-size:48px;opacity:0.3;"></i>
+            <p style="margin-top:16px;font-size:16px;">No reports found</p>
+            <p style="font-size:13px;">Try adjusting your filters or submit a new report</p>
+          </div>
         <% } else { %>
-        <div style="overflow-x:auto;">
-        <% if (type === 'monthly') { %>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Report ID</th>
-              <th>Month/Year</th>
-              <th>Branch</th>
-              <th>Male</th>
-              <th>Female</th>
-              <th>Children</th>
-              <th>Visitors</th>
-              <th>Souls Added</th>
-              <th>Total Income</th>
-              <th>Total Expenditure</th>
-              <th>Net Surplus</th>
-              <th>Prepared By</th>
-              <th>Pastor</th>
-              <th>Status</th>
-              <th>Submitted</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% reports.forEach(r => { %>
-            <tr>
-              <td><span class="font-mono" style="font-size:11px;color:var(--primary)"><%= r.reportId %></span></td>
-              <td><strong><%= r.monthName %> <%= r.year %></strong></td>
-              <td><%= r.branchName %></td>
-              <td><%= r.membership.male %></td>
-              <td><%= r.membership.female %></td>
-              <td><%= r.membership.children %></td>
-              <td><%= r.membership.visitors %></td>
-              <td>
-                <span style="background:rgba(124,58,237,0.1);color:#7c3aed;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:700;">
-                  <%= r.membership.soulsAdded %>
-                </span>
-              </td>
-              <td><strong style="color:#16a34a;">GH¢<%= r.income.total.toLocaleString() %></strong></td>
-              <td style="color:#dc2626;">GH¢<%= r.expenditure.total.toLocaleString() %></td>
-              <td>
-                <span class="<%= r.incomeOverExpenditure >= 0 ? 'surplus-positive' : 'surplus-negative' %>" style="font-weight:700;font-size:13px;">
-                  <%= r.incomeOverExpenditure >= 0 ? '+' : '' %>GH¢<%= r.incomeOverExpenditure.toLocaleString() %>
-                </span>
-              </td>
-              <td><%= r.preparedBy %></td>
-              <td><%= r.residentPastor %></td>
-              <td><span class="status-badge <%= r.status %>"><%= r.status %></span></td>
-              <td style="color:#8a6050;font-size:12px;"><%= moment(r.createdAt).format('DD MMM YYYY') %></td>
-              <td>
-                <div style="display:flex;gap:6px;">
+
+        <div class="table-scroll-wrap">
+          <% if (type === 'monthly') { %>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Report ID</th>
+                <th>Month/Year</th>
+                <th>Branch</th>
+                <th>Male</th>
+                <th>Female</th>
+                <th>Children</th>
+                <th>Visitors</th>
+                <th>Souls Added</th>
+                <th>Total Income</th>
+                <th>Total Expenditure</th>
+                <th>Net Surplus</th>
+                <th>Prepared By</th>
+                <th>Pastor</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% reports.forEach(r => { %>
+              <tr>
+                <td><span class="font-mono" style="font-size:11px;color:var(--primary)"><%= r.reportId %></span></td>
+                <td><strong><%= r.monthName %> <%= r.year %></strong></td>
+                <td><%= r.branchName %></td>
+                <td><%= r.membership.male %></td>
+                <td><%= r.membership.female %></td>
+                <td><%= r.membership.children %></td>
+                <td><%= r.membership.visitors %></td>
+                <td>
+                  <span style="background:rgba(124,58,237,0.1);color:#7c3aed;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:700;">
+                    <%= r.membership.soulsAdded %>
+                  </span>
+                </td>
+                <td><strong style="color:#16a34a;">GH¢<%= r.income.total.toLocaleString() %></strong></td>
+                <td style="color:#dc2626;">GH¢<%= r.expenditure.total.toLocaleString() %></td>
+                <td>
+                  <span style="font-weight:700;font-size:13px;color:<%= r.incomeOverExpenditure >= 0 ? '#16a34a' : '#dc2626' %>">
+                    <%= r.incomeOverExpenditure >= 0 ? '+' : '' %>GH¢<%= r.incomeOverExpenditure.toLocaleString() %>
+                  </span>
+                </td>
+                <td><%= r.preparedBy %></td>
+                <td><%= r.residentPastor %></td>
+                <td><span class="status-badge <%= r.status %>"><%= r.status %></span></td>
+                <td style="color:#8a6050;font-size:12px;"><%= moment(r.createdAt).format('DD MMM YYYY') %></td>
+                <td>
                   <a href="/reports/view/monthly/<%= r._id %>" class="btn btn-secondary btn-sm" title="View">
                     <i class="fas fa-eye"></i>
                   </a>
-                </div>
-              </td>
-            </tr>
-            <% }) %>
-          </tbody>
-        </table>
-        <% } else { %>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Report ID</th>
-              <th>Week Date</th>
-              <th>Branch</th>
-              <th>Days of Service</th>
-              <th>Total Members</th>
-              <th>Male</th>
-              <th>Female</th>
-              <th>Children</th>
-              <th>Visitors</th>
-              <th>Total Income</th>
-              <th>Tithes</th>
-              <th>Offerings</th>
-              <th>Prepared By</th>
-              <th>Pastor</th>
-              <th>Status</th>
-              <th>Submitted</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% reports.forEach(r => { %>
-            <tr>
-              <td><span class="font-mono" style="font-size:11px;color:var(--primary)"><%= r.reportId %></span></td>
-              <td><strong><%= moment(r.weeklyDate).format('DD MMM YYYY') %></strong></td>
-              <td><%= r.branchName %></td>
-              <td>
-                <% r.daysOfService.forEach(d => { %>
-                  <span style="background:rgba(171,42,10,0.08);color:var(--primary);padding:1px 5px;border-radius:4px;font-size:10px;font-weight:600;margin:1px;display:inline-block;">
-                    <%= d.substr(0,3) %>
-                  </span>
-                <% }) %>
-              </td>
-              <td><%= r.attendance.totalMembership %></td>
-              <td><%= r.attendance.male %></td>
-              <td><%= r.attendance.female %></td>
-              <td><%= r.attendance.children %></td>
-              <td><%= r.attendance.visitors %></td>
-              <td><strong style="color:#16a34a;">GH¢<%= r.finance.total.toLocaleString() %></strong></td>
-              <td>GH¢<%= r.finance.tithes.toLocaleString() %></td>
-              <td>GH¢<%= r.finance.offerings.toLocaleString() %></td>
-              <td><%= r.preparedBy %></td>
-              <td><%= r.residentPastor %></td>
-              <td><span class="status-badge <%= r.status %>"><%= r.status %></span></td>
-              <td style="color:#8a6050;font-size:12px;"><%= moment(r.createdAt).format('DD MMM YYYY') %></td>
-              <td>
-                <a href="/reports/view/weekly/<%= r._id %>" class="btn btn-secondary btn-sm">
-                  <i class="fas fa-eye"></i>
-                </a>
-              </td>
-            </tr>
-            <% }) %>
-          </tbody>
-        </table>
-        <% } %>
-        </div>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% } else { %>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Report ID</th>
+                <th>Week Date</th>
+                <th>Branch</th>
+                <th>Days of Service</th>
+                <th>Total Members</th>
+                <th>Male</th>
+                <th>Female</th>
+                <th>Children</th>
+                <th>Visitors</th>
+                <th>Total Income</th>
+                <th>Tithes</th>
+                <th>Offerings</th>
+                <th>Prepared By</th>
+                <th>Pastor</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% reports.forEach(r => { %>
+              <tr>
+                <td><span class="font-mono" style="font-size:11px;color:var(--primary)"><%= r.reportId %></span></td>
+                <td><strong><%= moment(r.weeklyDate).format('DD MMM YYYY') %></strong></td>
+                <td><%= r.branchName %></td>
+                <td>
+                  <% r.daysOfService.forEach(d => { %>
+                    <span style="background:rgba(171,42,10,0.08);color:var(--primary);padding:1px 5px;border-radius:4px;font-size:10px;font-weight:600;margin:1px;display:inline-block;">
+                      <%= d.substr(0,3) %>
+                    </span>
+                  <% }) %>
+                </td>
+                <td><%= r.attendance.totalMembership %></td>
+                <td><%= r.attendance.male %></td>
+                <td><%= r.attendance.female %></td>
+                <td><%= r.attendance.children %></td>
+                <td><%= r.attendance.visitors %></td>
+                <td><strong style="color:#16a34a;">GH¢<%= r.finance.total.toLocaleString() %></strong></td>
+                <td>GH¢<%= r.finance.tithes.toLocaleString() %></td>
+                <td>GH¢<%= r.finance.offerings.toLocaleString() %></td>
+                <td><%= r.preparedBy %></td>
+                <td><%= r.residentPastor %></td>
+                <td><span class="status-badge <%= r.status %>"><%= r.status %></span></td>
+                <td style="color:#8a6050;font-size:12px;"><%= moment(r.createdAt).format('DD MMM YYYY') %></td>
+                <td>
+                  <a href="/reports/view/weekly/<%= r._id %>" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% } %>
+        </div><!-- end table-scroll-wrap -->
 
         <!-- PAGINATION -->
         <% if (pagination.total > 1) { %>
         <div class="pagination" style="margin-top:20px;">
           <% if (pagination.current > 1) { %>
-            <a href="?type=<%= type %>&page=<%= pagination.current - 1 %>" class="page-btn">
+            <a href="?type=<%= type %>&branch=<%= filters.branch %>&year=<%= filters.year %>&month=<%= filters.month %>&status=<%= filters.status %>&page=<%= pagination.current - 1 %>" class="page-btn">
               <i class="fas fa-chevron-left"></i>
             </a>
           <% } %>
-          <% for(let p = 1; p <= pagination.total; p++) { %>
-            <a href="?type=<%= type %>&page=<%= p %>" class="page-btn <%= p === pagination.current ? 'active' : '' %>">
+          <% for(let p = 1; p <= Math.min(pagination.total,10); p++) { %>
+            <a href="?type=<%= type %>&branch=<%= filters.branch %>&year=<%= filters.year %>&month=<%= filters.month %>&status=<%= filters.status %>&page=<%= p %>"
+               class="page-btn <%= p === pagination.current ? 'active' : '' %>">
               <%= p %>
             </a>
           <% } %>
           <% if (pagination.current < pagination.total) { %>
-            <a href="?type=<%= type %>&page=<%= pagination.current + 1 %>" class="page-btn">
+            <a href="?type=<%= type %>&branch=<%= filters.branch %>&year=<%= filters.year %>&month=<%= filters.month %>&status=<%= filters.status %>&page=<%= pagination.current + 1 %>" class="page-btn">
               <i class="fas fa-chevron-right"></i>
             </a>
           <% } %>
@@ -242,9 +318,9 @@
           </span>
         </div>
         <% } %>
-        <% } %>
-      </div>
 
+        <% } %>
+      </div><!-- end data-table-container -->
     </div>
   </div>
 </div>

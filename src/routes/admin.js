@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { requireAdmin, requireSuperAdmin } = require('../middleware/auth');
-const User = require('../models/User');
-const Branch = require('../models/Branch');
-const Pastor = require('../models/Pastor');
+const User    = require('../models/User');
+const Branch  = require('../models/Branch');
+const Pastor  = require('../models/Pastor');
 const FormLink = require('../models/FormLink');
 
 // GET Admin Panel
@@ -17,8 +17,7 @@ router.get('/', requireAdmin, async (req, res) => {
     ]);
     res.render('admin/index', {
       title: 'Admin Panel - FPCI', users, branches, pastors, formLinks,
-      success_msg: req.flash('success_msg'),
-      error_msg: req.flash('error_msg')
+      success_msg: req.flash('success_msg'), error_msg: req.flash('error_msg')
     });
   } catch (error) {
     console.error('Admin error:', error);
@@ -34,11 +33,10 @@ router.get('/links', requireAdmin, async (req, res) => {
       FormLink.find().populate('createdBy','firstName lastName').populate('branch','name').sort('-createdAt'),
       Branch.find({ isActive: true }).sort('name')
     ]);
+    // appUrl is now set dynamically in server.js globals — no need to pass it here
     res.render('admin/links', {
       title: 'Form Links - FPCI', formLinks, branches,
-      appUrl: process.env.APP_URL || 'http://localhost:3000',
-      success_msg: req.flash('success_msg'),
-      error_msg: req.flash('error_msg')
+      success_msg: req.flash('success_msg'), error_msg: req.flash('error_msg')
     });
   } catch (error) {
     req.flash('error_msg', 'Error loading form links');
@@ -66,8 +64,7 @@ router.get('/users', requireAdmin, async (req, res) => {
     ]);
     res.render('admin/users', {
       title: 'User Management - FPCI', users, branches,
-      success_msg: req.flash('success_msg'),
-      error_msg: req.flash('error_msg')
+      success_msg: req.flash('success_msg'), error_msg: req.flash('error_msg')
     });
   } catch (error) {
     req.flash('error_msg', 'Error loading users');
@@ -97,8 +94,7 @@ router.get('/users/edit/:id', requireAdmin, async (req, res) => {
     if (!editUser) { req.flash('error_msg', 'User not found'); return res.redirect('/admin/users'); }
     res.render('admin/users', {
       title: 'Edit User - FPCI', users, branches, editUser,
-      success_msg: req.flash('success_msg'),
-      error_msg: req.flash('error_msg')
+      success_msg: req.flash('success_msg'), error_msg: req.flash('error_msg')
     });
   } catch (error) {
     req.flash('error_msg', 'Error loading user');
@@ -142,8 +138,7 @@ router.get('/pastors', requireAdmin, async (req, res) => {
     ]);
     res.render('admin/pastors', {
       title: 'Pastors Management - FPCI', pastors, branches,
-      success_msg: req.flash('success_msg'),
-      error_msg: req.flash('error_msg')
+      success_msg: req.flash('success_msg'), error_msg: req.flash('error_msg')
     });
   } catch (error) {
     req.flash('error_msg', 'Error loading pastors');
@@ -155,12 +150,7 @@ router.post('/pastors/add', requireAdmin, async (req, res) => {
   try {
     const { firstName, lastName, title, email, phone, branches, isPrimaryPastor, bio } = req.body;
     const branchIds = Array.isArray(branches) ? branches : [branches].filter(Boolean);
-    const pastor = await Pastor.create({
-      firstName, lastName, title, email, phone,
-      branches: branchIds,
-      isPrimaryPastor: isPrimaryPastor === 'on',
-      bio
-    });
+    const pastor = await Pastor.create({ firstName, lastName, title, email, phone, branches: branchIds, isPrimaryPastor: isPrimaryPastor === 'on', bio });
     await Branch.updateMany({ _id: { $in: branchIds } }, { $addToSet: { pastors: pastor._id } });
     req.flash('success_msg', `Pastor ${pastor.title} ${pastor.firstName} ${pastor.lastName} added`);
     res.redirect('/admin/pastors');
@@ -174,12 +164,7 @@ router.put('/pastors/edit/:id', requireAdmin, async (req, res) => {
   try {
     const { firstName, lastName, title, email, phone, branches, isPrimaryPastor, isActive } = req.body;
     const branchIds = Array.isArray(branches) ? branches : [branches].filter(Boolean);
-    await Pastor.findByIdAndUpdate(req.params.id, {
-      firstName, lastName, title, email, phone,
-      branches: branchIds,
-      isPrimaryPastor: isPrimaryPastor === 'on',
-      isActive: isActive !== 'false'
-    });
+    await Pastor.findByIdAndUpdate(req.params.id, { firstName, lastName, title, email, phone, branches: branchIds, isPrimaryPastor: isPrimaryPastor === 'on', isActive: isActive !== 'false' });
     await Branch.updateMany({ _id: { $in: branchIds } }, { $addToSet: { pastors: req.params.id } });
     req.flash('success_msg', 'Pastor updated successfully');
     res.redirect('/admin/pastors');
@@ -192,9 +177,7 @@ router.put('/pastors/edit/:id', requireAdmin, async (req, res) => {
 router.delete('/pastors/:id', requireAdmin, async (req, res) => {
   try {
     const pastor = await Pastor.findByIdAndDelete(req.params.id);
-    if (pastor) {
-      await Branch.updateMany({ pastors: req.params.id }, { $pull: { pastors: req.params.id } });
-    }
+    if (pastor) { await Branch.updateMany({ pastors: req.params.id }, { $pull: { pastors: req.params.id } }); }
     req.flash('success_msg', 'Pastor deleted successfully');
     res.redirect('/admin/pastors');
   } catch (error) {

@@ -61,16 +61,13 @@ app.use(session({
 
 app.use(flash());
 
-// Globals — dynamic appUrl works on localhost AND any production domain
+// Globals
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
-  res.locals.error_msg   = req.flash('error_msg');
-  res.locals.error       = req.flash('error');
-  res.locals.user        = req.session.user || null;
-  res.locals.appName     = process.env.APP_NAME || 'FPCI';
-  const proto = req.headers['x-forwarded-proto'] || req.protocol;
-  const host  = req.headers['x-forwarded-host']  || req.get('host');
-  res.locals.appUrl = proto + '://' + host;
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
+  res.locals.user = req.session.user || null;
+  res.locals.appName = process.env.APP_NAME || 'FPCI';
   next();
 });
 

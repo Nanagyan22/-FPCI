@@ -12,7 +12,7 @@ const path = require('path');
 
 const app = express();
 
-// Trust proxy - REQUIRED for Render/Heroku/Vercel
+// CRITICAL: Trust proxy for Railway/Render/Heroku
 app.set('trust proxy', 1);
 
 // Database
@@ -45,9 +45,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session - FIXED for Render deployment
-const isProduction = process.env.NODE_ENV === 'production';
-
+// Session Configuration - Fixed for production
 app.use(session({
   secret: process.env.SESSION_SECRET || 'fpci_secret_key_2024',
   resave: false,
@@ -55,13 +53,14 @@ app.use(session({
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
     touchAfter: 24 * 3600,
-    ttl: 14 * 24 * 60 * 60
+    ttl: 14 * 24 * 60 * 60,
+    autoRemove: 'native'
   }),
   cookie: {
-    secure: isProduction,
+    secure: true,
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24 * 7,
-    sameSite: isProduction ? 'none' : 'lax'
+    sameSite: 'none'
   }
 }));
 
@@ -89,26 +88,31 @@ app.use('/reports',   require('./src/routes/reports'));
 app.use('/admin',     require('./src/routes/admin'));
 app.use('/api',       require('./src/routes/api'));
 
+// Home
 app.get('/', (req, res) => {
   if (req.session.user) return res.redirect('/dashboard');
   res.redirect('/auth/login');
 });
 
-// Debug route - REMOVE after fixing
+// Debug route - shows session info
 app.get('/debug-session', (req, res) => {
   res.json({
-    session: req.session,
+    hasSession: !!req.session.user,
     sessionID: req.sessionID,
-    cookies: req.headers.cookie,
-    isProduction: isProduction,
-    trustProxy: app.get('trust proxy')
+    isProduction: process.env.NODE_ENV === 'production',
+    trustProxy: app.get('trust proxy'),
+    protocol: req.protocol,
+    secure: req.secure,
+    forwardedProto: req.headers['x-forwarded-proto']
   });
 });
 
+// 404
 app.use((req, res) => {
   res.status(404).render('partials/404', { title: '404 - Not Found' });
 });
 
+// Error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
   if (res.headersSent) return;
@@ -122,7 +126,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🔥 FPCI Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔒 Secure cookies: ${isProduction}`);
 });
 
 module.exports = app;

@@ -299,8 +299,30 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Set active tab from URL
+  // Form tab buttons: use normal event listeners so taps work reliably
+  // on desktop and touch/mobile browsers.
+  var weeklyTabBtn = document.getElementById('btnWeekly');
+  var monthlyTabBtn = document.getElementById('btnMonthly');
+
+  if (weeklyTabBtn) {
+    weeklyTabBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      switchFormTab('weekly');
+    });
+  }
+
+  if (monthlyTabBtn) {
+    monthlyTabBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      switchFormTab('monthly');
+    });
+  }
+
+  // Only override the server-selected tab when ?tab= was actually supplied.
+  // This prevents a public monthly link from being reset to weekly.
   var urlParams = new URLSearchParams(window.location.search);
-  var tab = urlParams.get('tab') || 'weekly';
-  if (typeof switchFormTab === 'function') switchFormTab(tab);
+  var tab = urlParams.get('tab');
+  if (tab === 'weekly' || tab === 'monthly') {
+    switchFormTab(tab);
+  }
 });

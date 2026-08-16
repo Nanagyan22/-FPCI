@@ -403,3 +403,29 @@ body { font-family:'Inter','Segoe UI',system-ui,sans-serif; background:#f8f4f0; 
   .add-field-btn { font-size:11px; padding:6px 10px; }
   .form-check-label { font-size:11px; }
 }
+
+/* Mobile report-tab reliability */
+#formTabNav {
+  position: relative;
+  z-index: 10;
+}
+
+#formTabNav .tab-btn {
+  position: relative;
+  z-index: 11;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 575px) {
+  #formTabNav {
+    width: 100%;
+  }
+
+  #formTabNav .tab-btn {
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px 6px;
+    font-size: 11px;
+  }
+}

@@ -92,14 +92,14 @@
         <form method="GET" action="/reports" id="filterForm" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;flex:1;">
           <div class="filter-group">
             <label class="filter-label">Type</label>
-            <select name="type" class="filter-select" onchange="this.form.submit()">
+            <select name="type" class="filter-select">
               <option value="monthly" <%= type === 'monthly' ? 'selected' : '' %>>Monthly</option>
               <option value="weekly"  <%= type === 'weekly'  ? 'selected' : '' %>>Weekly</option>
             </select>
           </div>
           <div class="filter-group">
             <label class="filter-label">Branch</label>
-            <select name="branch" class="filter-select" onchange="this.form.submit()">
+            <select name="branch" class="filter-select">
               <option value="">All Branches</option>
               <% branches.forEach(b => { %>
                 <option value="<%= b._id %>" <%= filters.branch === b._id.toString() ? 'selected' : '' %>><%= b.name %></option>
@@ -108,7 +108,7 @@
           </div>
           <div class="filter-group">
             <label class="filter-label">Year</label>
-            <select name="year" class="filter-select" onchange="this.form.submit()">
+            <select name="year" class="filter-select">
               <option value="">All Years</option>
               <% years.forEach(y => { %>
                 <option value="<%= y %>" <%= filters.year == y ? 'selected' : '' %>><%= y %></option>
@@ -118,7 +118,7 @@
           <% if (type === 'monthly') { %>
           <div class="filter-group">
             <label class="filter-label">Month</label>
-            <select name="month" class="filter-select" onchange="this.form.submit()">
+            <select name="month" class="filter-select">
               <option value="">All Months</option>
               <% ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].forEach((m,i) => { %>
                 <option value="<%= i+1 %>" <%= filters.month == i+1 ? 'selected' : '' %>><%= m %></option>
@@ -128,7 +128,7 @@
           <% } %>
           <div class="filter-group">
             <label class="filter-label">Status</label>
-            <select name="status" class="filter-select" onchange="this.form.submit()">
+            <select name="status" class="filter-select">
               <option value="">All Status</option>
               <option value="pending"  <%= filters.status === 'pending'  ? 'selected' : '' %>>Pending</option>
               <option value="approved" <%= filters.status === 'approved' ? 'selected' : '' %>>Approved</option>
@@ -325,5 +325,19 @@
   </div>
 </div>
 <script src="/js/main.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var filterForm = document.getElementById('filterForm');
+
+  if (filterForm) {
+    filterForm.querySelectorAll('.filter-select').forEach(function(select) {
+      select.addEventListener('change', function() {
+        filterForm.submit();
+      });
+    });
+  }
+});
+</script>
 </body>
 </html>

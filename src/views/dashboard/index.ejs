@@ -36,10 +36,10 @@
       <!-- FILTER BAR -->
       <div class="filters-bar animate-in">
         <i class="fas fa-filter" style="color:var(--primary);"></i>
-        <form method="GET" action="/dashboard" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;flex:1;">
+        <form method="GET" action="/dashboard" id="dashboardFilterForm" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;flex:1;">
           <div class="filter-group">
             <label class="filter-label">Year</label>
-            <select name="year" class="filter-select" onchange="this.form.submit()">
+            <select name="year" class="filter-select">
               <% for(let y=new Date().getFullYear();y>=2020;y--){ %>
                 <option value="<%= y %>" <%= filterYear==y?'selected':'' %>><%= y %></option>
               <% } %>
@@ -47,7 +47,7 @@
           </div>
           <div class="filter-group">
             <label class="filter-label">Month</label>
-            <select name="month" class="filter-select" onchange="this.form.submit()">
+            <select name="month" class="filter-select">
               <option value="0" <%= filterMonth==0?'selected':'' %>>All Months</option>
               <% ['January','February','March','April','May','June','July','August','September','October','November','December'].forEach((m,i)=>{ %>
                 <option value="<%= i+1 %>" <%= filterMonth==i+1?'selected':'' %>><%= m %></option>
@@ -56,7 +56,7 @@
           </div>
           <div class="filter-group">
             <label class="filter-label">Branch</label>
-            <select name="branch" class="filter-select" onchange="this.form.submit()">
+            <select name="branch" class="filter-select">
               <option value="">All Branches</option>
               <% branches.forEach(b=>{ %>
                 <option value="<%= b._id %>" <%= filterBranch===b._id.toString()?'selected':'' %>><%= b.name %></option>
@@ -553,6 +553,20 @@ const attBreakdown  = <%- JSON.stringify(attendanceBreakdown) %>;
     }
   });
 })();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var filterForm = document.getElementById('dashboardFilterForm');
+
+  if (filterForm) {
+    filterForm.querySelectorAll('.filter-select').forEach(function(select) {
+      select.addEventListener('change', function() {
+        filterForm.submit();
+      });
+    });
+  }
+});
 </script>
 </body>
 </html>

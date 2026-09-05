@@ -299,6 +299,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Weekly custom income field button
+  var addWeeklyIncomeBtn = document.getElementById('addWeeklyIncomeBtn');
+  if (addWeeklyIncomeBtn) {
+    addWeeklyIncomeBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      addCustomField(
+        'weeklyCustomFinance',
+        'customFinanceLabels',
+        'customFinanceAmounts',
+        'w-finance'
+      );
+    });
+  }
+
   // Monthly custom field buttons
   var addMonthlyIncomeBtn = document.getElementById('addMonthlyIncomeBtn');
   if (addMonthlyIncomeBtn) {

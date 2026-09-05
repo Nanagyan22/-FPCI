@@ -63,6 +63,12 @@ function initSignaturePad(canvasId, dataId) {
     if (!drawing) return;
     e.preventDefault();
     var p = getPos(e);
+    // Always restore signature ink after canvas resize/baseline drawing.
+    // drawBaseline() changes the context to a light colour.
+    ctx.strokeStyle = '#111111';
+    ctx.lineWidth = 2.6;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(p.x, p.y);
@@ -299,6 +305,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Signature Clear buttons
+  document.querySelectorAll('[data-clear-canvas]').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      clearSig(
+        btn.dataset.clearCanvas,
+        btn.dataset.clearInput
+      );
+    });
+  });
+
   // Weekly custom income field button
   var addWeeklyIncomeBtn = document.getElementById('addWeeklyIncomeBtn');
   if (addWeeklyIncomeBtn) {
@@ -359,11 +376,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Only override the server-selected tab when ?tab= was actually supplied.
-  // This prevents a public monthly link from being reset to weekly.
+  // Choose tab from URL when supplied; otherwise use the server-selected tab.
   var urlParams = new URLSearchParams(window.location.search);
   var tab = urlParams.get('tab');
-  if (tab === 'weekly' || tab === 'monthly') {
-    switchFormTab(tab);
+
+  if (tab !== 'weekly' && tab !== 'monthly') {
+    var formTabNav = document.getElementById('formTabNav');
+    tab = formTabNav ? formTabNav.dataset.activeTab : 'weekly';
   }
+
+  switchFormTab(tab === 'monthly' ? 'monthly' : 'weekly');
 });

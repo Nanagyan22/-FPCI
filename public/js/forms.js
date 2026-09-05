@@ -299,6 +299,33 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Monthly custom field buttons
+  var addMonthlyIncomeBtn = document.getElementById('addMonthlyIncomeBtn');
+  if (addMonthlyIncomeBtn) {
+    addMonthlyIncomeBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      addCustomField(
+        'monthlyCustomIncome',
+        'customIncomeLabels',
+        'customIncomeAmounts',
+        'm-income'
+      );
+    });
+  }
+
+  var addMonthlyExpenseBtn = document.getElementById('addMonthlyExpenseBtn');
+  if (addMonthlyExpenseBtn) {
+    addMonthlyExpenseBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      addCustomField(
+        'monthlyCustomExpense',
+        'customExpenseLabels',
+        'customExpenseAmounts',
+        'm-expense'
+      );
+    });
+  }
+
   // Form tab buttons: use normal event listeners so taps work reliably
   // on desktop and touch/mobile browsers.
   var weeklyTabBtn = document.getElementById('btnWeekly');

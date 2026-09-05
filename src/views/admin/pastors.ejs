@@ -57,7 +57,7 @@
         </div>
       </div>
       <div class="topbar-right">
-        <button onclick="openAddModal()" class="btn btn-primary">
+        <button data-action="open-add-pastor" class="btn btn-primary">
           <i class="fas fa-plus"></i> Add New Pastor
         </button>
       </div>
@@ -98,7 +98,7 @@
             <i class="fas fa-user-tie" style="color:var(--gold);margin-right:8px;"></i>
             All Pastors (<%= pastors.length %>)
           </div>
-          <button onclick="openAddModal()" class="btn btn-primary btn-sm">
+          <button data-action="open-add-pastor" class="btn btn-primary btn-sm">
             <i class="fas fa-plus"></i> Add Pastor
           </button>
         </div>
@@ -107,7 +107,7 @@
         <div style="text-align:center;padding:60px;color:#8a6050;">
           <i class="fas fa-user-tie" style="font-size:48px;opacity:0.3;display:block;margin-bottom:16px;"></i>
           <p style="font-size:16px;">No pastors registered yet</p>
-          <button onclick="openAddModal()" class="btn btn-primary" style="margin-top:12px;">
+          <button data-action="open-add-pastor" class="btn btn-primary" style="margin-top:12px;">
             <i class="fas fa-plus"></i> Add First Pastor
           </button>
         </div>
@@ -174,8 +174,16 @@
               </td>
               <td>
                 <div style="display:flex;gap:6px;flex-wrap:nowrap;">
-                  <button class="btn btn-secondary btn-sm"
-                    onclick="openEditModal('<%=p._id%>','<%=p.firstName%>','<%=p.lastName%>','<%=p.title%>','<%=p.email||''%>','<%=p.phone||''%>',<%=p.isPrimaryPastor%>,<%=p.isActive%>,'<%=p.branches?p.branches.map(function(b){return b._id}).join(','):''%>')"
+                  <button type="button" class="btn btn-secondary btn-sm edit-pastor-btn"
+                    data-id="<%=p._id%>"
+                    data-first-name="<%=p.firstName%>"
+                    data-last-name="<%=p.lastName%>"
+                    data-title="<%=p.title%>"
+                    data-email="<%=p.email||''%>"
+                    data-phone="<%=p.phone||''%>"
+                    data-primary="<%=p.isPrimaryPastor%>"
+                    data-active="<%=p.isActive%>"
+                    data-branches="<%=p.branches?p.branches.map(function(b){return b._id}).join(','):''%>"
                     title="Edit Pastor">
                     <i class="fas fa-edit"></i> Edit
                   </button>
@@ -200,7 +208,7 @@
 </div>
 
 <!-- ============ ADD PASTOR MODAL ============ -->
-<div class="modal-overlay" id="addModal" onclick="closeModalOnBg(event,'addModal')">
+<div class="modal-overlay" id="addModal">
   <div class="modal-box">
     <h3><i class="fas fa-user-plus"></i> Add New Pastor</h3>
     <form action="/admin/pastors/add" method="POST">
@@ -261,7 +269,7 @@
         </label>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button type="button" onclick="closeModal('addModal')" class="btn btn-secondary">
+        <button type="button" data-close-modal="addModal" class="btn btn-secondary">
           <i class="fas fa-times"></i> Cancel
         </button>
         <button type="submit" class="btn btn-primary">
@@ -273,7 +281,7 @@
 </div>
 
 <!-- ============ EDIT PASTOR MODAL ============ -->
-<div class="modal-overlay" id="editModal" onclick="closeModalOnBg(event,'editModal')">
+<div class="modal-overlay" id="editModal">
   <div class="modal-box">
     <h3><i class="fas fa-edit"></i> Edit Pastor</h3>
     <form id="editPastorForm" method="POST">
@@ -335,7 +343,7 @@
         </label>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button type="button" onclick="closeModal('editModal')" class="btn btn-secondary">
+        <button type="button" data-close-modal="editModal" class="btn btn-secondary">
           <i class="fas fa-times"></i> Cancel
         </button>
         <button type="submit" class="btn btn-primary">
@@ -381,6 +389,53 @@ function closeModal(id) {
 function closeModalOnBg(event, id) {
   if (event.target === document.getElementById(id)) closeModal(id);
 }
+
+// Close modal when clicking its dark background
+['addModal', 'editModal'].forEach(function(id) {
+  var modal = document.getElementById(id);
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeModal(id);
+      }
+    });
+  }
+});
+
+// Modal close buttons
+document.querySelectorAll('[data-close-modal]').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    closeModal(btn.dataset.closeModal);
+  });
+});
+
+// Edit Pastor buttons
+document.querySelectorAll('.edit-pastor-btn').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+
+    openEditModal(
+      btn.dataset.id,
+      btn.dataset.firstName || '',
+      btn.dataset.lastName || '',
+      btn.dataset.title || '',
+      btn.dataset.email || '',
+      btn.dataset.phone || '',
+      btn.dataset.primary === 'true',
+      btn.dataset.active === 'true',
+      btn.dataset.branches || ''
+    );
+  });
+});
+
+// Add Pastor buttons
+document.querySelectorAll('[data-action="open-add-pastor"]').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    openAddModal();
+  });
+});
 
 // Close on Escape key
 document.addEventListener('keydown', function(e) {
